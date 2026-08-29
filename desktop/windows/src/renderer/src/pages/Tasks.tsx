@@ -10,6 +10,7 @@ import { toast } from '../lib/toast'
 import { bucketOf, formatDue, startOfDay, startOfDayOffset, type Bucket } from '../lib/taskBuckets'
 import type { ActionItemRecord } from '../../../shared/types'
 import type { Conversation as CloudConversation } from '../lib/omiApi.generated'
+import { useI18n } from '../lib/i18n'
 
 type ConvMeta = { title: string; emoji?: string }
 
@@ -77,13 +78,6 @@ function isOverdue(t: ActionItemRecord): boolean {
 }
 
 const BUCKET_ORDER: Bucket[] = ['today', 'tomorrow', 'later', 'nodate']
-const BUCKET_LABEL: Record<Bucket, string> = {
-  today: 'Today',
-  tomorrow: 'Tomorrow',
-  later: 'Later',
-  nodate: 'No due date'
-}
-
 // Move the keyboard selection across the flat, rendered task order. Clamps at the
 // ends (no wrap) and, when nothing is selected yet, Down picks the first row and Up
 // the last — mirroring Mac's `moveSelection` (TasksPage.swift).
@@ -100,6 +94,7 @@ function moveSelection(
 }
 
 export function Tasks(): React.JSX.Element {
+  const { language, t: tr } = useI18n()
   const { pathname } = useLocation()
   // This panel stays mounted while the user is on another tab, so "mounted" is not
   // "on screen". Same signal the Conversations panel gates its fetches on.
@@ -622,8 +617,8 @@ export function Tasks(): React.JSX.Element {
           onClick={() => void deleteItem(t)}
           disabled={isBusy}
           className="mt-0.5 shrink-0 rounded-md p-1 text-white/30 opacity-0 transition-all hover:bg-white/5 hover:text-rose-300/80 group-hover:opacity-100 disabled:opacity-0"
-          title="Delete task"
-          aria-label="Delete task"
+          title={tr('tasks.delete')}
+          aria-label={tr('tasks.delete')}
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -635,8 +630,15 @@ export function Tasks(): React.JSX.Element {
     <div className="flex h-full flex-col">
       <PageHeader
         title="Tasks"
+        titleKey="pages.tasks"
         titleSlot={<TasksGoalsToggle />}
-        subtitle={loading ? 'Loading…' : `${openCount} open · ${doneCount} done`}
+        subtitle={
+          loading
+            ? tr('common.loading')
+            : language === 'ja'
+              ? `未完了 ${openCount}件・完了 ${doneCount}件`
+              : `${openCount} open · ${doneCount} done`
+        }
         actions={
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 rounded-2xl border border-white/10 bg-black/20 p-1">
@@ -650,23 +652,27 @@ export function Tasks(): React.JSX.Element {
                       : 'text-white/55 hover:bg-white/5 hover:text-white/80'
                   }`}
                 >
-                  {f}
+                  {f === 'open'
+                    ? tr('common.open')
+                    : f === 'done'
+                      ? tr('common.done')
+                      : tr('common.all')}
                 </button>
               ))}
             </div>
             <button
               onClick={() => setComposing((c) => !c)}
               className="btn-primary px-3 py-2"
-              title="Add a task"
+              title={tr('tasks.add')}
             >
               <Plus className="h-4 w-4" />
-              New
+              {tr('common.new')}
             </button>
             <button
               onClick={onRefresh}
               disabled={refreshing || loading}
               className="btn-ghost px-3 py-2 disabled:opacity-50"
-              title="Refresh"
+              title={tr('common.refresh')}
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -691,7 +697,7 @@ export function Tasks(): React.JSX.Element {
                     setDraftDue('')
                   }
                 }}
-                placeholder="What needs to get done?"
+                placeholder={tr('tasks.placeholder')}
                 className="input-field"
               />
               <div className="mt-3 flex items-center gap-2">
@@ -713,14 +719,14 @@ export function Tasks(): React.JSX.Element {
                   className="btn-ghost ml-auto px-3 py-2"
                   disabled={saving}
                 >
-                  Cancel
+                  {tr('common.cancel')}
                 </button>
                 <button
                   onClick={saveNew}
                   disabled={saving || !draft.trim()}
                   className="btn-primary px-4 py-2 disabled:opacity-40"
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add task'}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : tr('tasks.addTask')}
                 </button>
               </div>
             </div>
@@ -743,7 +749,7 @@ export function Tasks(): React.JSX.Element {
 
         {error && (
           <div className="surface-panel mb-5 px-4 py-3 text-sm text-white/60">
-            <p className="text-white/80">Couldn’t load your tasks.</p>
+            <p className="text-white/80">{tr('tasks.loadFailed')}</p>
             <div className="mt-2 flex items-center gap-3">
               <button
                 onClick={() => {
@@ -754,7 +760,7 @@ export function Tasks(): React.JSX.Element {
                 className="btn-ghost px-3 py-1.5 text-xs"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
-                Try again
+                {tr('common.retry')}
               </button>
               <span className="text-xs text-white/35">{error}</span>
             </div>
@@ -764,15 +770,15 @@ export function Tasks(): React.JSX.Element {
         {!loading && !error && items.length === 0 && !composing && (
           <EmptyState
             icon={ListChecks}
-            title="No tasks yet"
-            description="Action items from your conversations show up here, alongside any tasks you add. Click New to create one."
+            title={tr('tasks.none')}
+            description={tr('tasks.emptyDescription')}
           />
         )}
 
         {!loading && items.length > 0 && visible.length === 0 && (
           <div className="flex flex-col items-center justify-center pt-16 text-center text-white/55">
             <Check className="mb-3 h-10 w-10 opacity-40" />
-            <p className="text-sm">All caught up.</p>
+            <p className="text-sm">{tr('tasks.caughtUp')}</p>
           </div>
         )}
 
@@ -781,7 +787,13 @@ export function Tasks(): React.JSX.Element {
             {openGroups.map((g) => (
               <section key={g.bucket}>
                 <h2 className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-white/40">
-                  {BUCKET_LABEL[g.bucket]}
+                  {g.bucket === 'today'
+                    ? tr('tasks.today')
+                    : g.bucket === 'tomorrow'
+                      ? tr('tasks.tomorrow')
+                      : g.bucket === 'later'
+                        ? tr('tasks.later')
+                        : tr('tasks.noDue')}
                   <span className="text-white/25">{g.items.length}</span>
                 </h2>
                 <ul className="space-y-2">{g.items.map(renderRow)}</ul>
@@ -790,7 +802,7 @@ export function Tasks(): React.JSX.Element {
             {doneItems.length > 0 && (
               <section>
                 <h2 className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-white/40">
-                  Completed
+                  {tr('common.completed')}
                   <span className="text-white/25">{doneItems.length}</span>
                 </h2>
                 <ul className="space-y-2">{doneItems.map(renderRow)}</ul>

@@ -1,0 +1,5 @@
+{
+  "changes": [
+    "The Windows app can now switch its core interface between English and Japanese from Settings > General, and keeps that choice across launches."
+  ]
+}

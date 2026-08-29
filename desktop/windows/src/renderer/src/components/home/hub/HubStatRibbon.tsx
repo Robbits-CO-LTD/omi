@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Brain, GanttChartSquare, History, ListChecks } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '../../../lib/utils'
+import { useI18n, type TranslationKey } from '../../../lib/i18n'
 
 // The Hub's four-cell stat ribbon (macOS DashboardPage). Purely presentational —
 // the counts are passed in, so the ribbon has no opinion about where they come
@@ -22,20 +23,26 @@ export type HubStatCounts = {
 
 type Cell = {
   key: keyof HubStatCounts
-  label: string
+  labelKey: TranslationKey
   Icon: LucideIcon
   to: string
 }
 
 const CELLS: Cell[] = [
-  { key: 'conversations', label: 'Conversations', Icon: GanttChartSquare, to: '/conversations' },
-  { key: 'tasks', label: 'Tasks', Icon: ListChecks, to: '/tasks' },
-  { key: 'memories', label: 'Memories', Icon: Brain, to: '/memories' },
-  { key: 'screenshots', label: 'Screenshots', Icon: History, to: '/rewind' }
+  {
+    key: 'conversations',
+    labelKey: 'home.stats.conversations',
+    Icon: GanttChartSquare,
+    to: '/conversations'
+  },
+  { key: 'tasks', labelKey: 'home.stats.tasks', Icon: ListChecks, to: '/tasks' },
+  { key: 'memories', labelKey: 'home.stats.memories', Icon: Brain, to: '/memories' },
+  { key: 'screenshots', labelKey: 'home.stats.screenshots', Icon: History, to: '/rewind' }
 ]
 
 export function HubStatRibbon({ counts }: { counts: HubStatCounts }): React.JSX.Element {
   const navigate = useNavigate()
+  const { t } = useI18n()
 
   return (
     <div
@@ -44,7 +51,7 @@ export function HubStatRibbon({ counts }: { counts: HubStatCounts }): React.JSX.
         'bg-home-tile/[0.88] shadow-[0_8px_10px_rgba(0,0,0,0.16)]'
       )}
     >
-      {CELLS.map(({ key, label, Icon, to }, i) => {
+      {CELLS.map(({ key, labelKey, Icon, to }, i) => {
         const count = counts[key]
         // "—" = unknown. "100+" = a capped source that can only prove a floor.
         const display =
@@ -73,7 +80,7 @@ export function HubStatRibbon({ counts }: { counts: HubStatCounts }): React.JSX.
                 {display}
               </span>
             </span>
-            <span className="mt-1.5 text-[11px] font-medium leading-none">{label}</span>
+            <span className="mt-1.5 text-[11px] font-medium leading-none">{t(labelKey)}</span>
           </button>
         )
       })}

@@ -6,6 +6,7 @@ import {
   type DateRange,
   NO_DATE_RANGE
 } from '../../lib/conversations/filtering'
+import { useI18n } from '../../lib/i18n'
 
 // ms → 'yyyy-mm-dd' (local) for a native <input type="date">.
 function toInputValue(ms: number | null): string {
@@ -32,6 +33,7 @@ export function DateFilterButton({
   dateRange: DateRange
   onChange: (range: DateRange) => void
 }): React.JSX.Element {
+  const { language } = useI18n()
   const [open, setOpen] = useState(false)
   const active = dateRange.start != null || dateRange.end != null
   const fromValue = toInputValue(dateRange.start)
@@ -53,10 +55,10 @@ export function DateFilterButton({
         className={`surface-panel flex items-center gap-2 px-4 py-2.5 text-sm transition-colors duration-200 ${
           active ? 'text-white' : 'text-white/55 hover:text-white/80'
         }`}
-        title="Filter by date"
+        title={language === 'ja' ? '日付で絞り込む' : 'Filter by date'}
       >
         <CalendarDays className="h-4 w-4" />
-        <span className="hidden sm:inline">Date</span>
+        <span className="hidden sm:inline">{language === 'ja' ? '日付' : 'Date'}</span>
         {active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
       </button>
 
@@ -66,19 +68,21 @@ export function DateFilterButton({
           <div className="fixed inset-0 z-[90]" onClick={() => setOpen(false)} />
           <div className="surface-panel absolute right-0 z-[100] mt-2 w-64 p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-white/50">Date range</span>
+              <span className="text-xs font-medium text-white/50">
+                {language === 'ja' ? '日付の範囲' : 'Date range'}
+              </span>
               {/* Always offered while a range is set — the only way to undo one. */}
               {active && (
                 <button
                   onClick={() => onChange(NO_DATE_RANGE)}
                   className="rounded-md px-1.5 py-0.5 text-xs font-medium text-white/55 transition-colors hover:bg-white/10 hover:text-white"
                 >
-                  Clear
+                  {language === 'ja' ? 'クリア' : 'Clear'}
                 </button>
               )}
             </div>
             <label className="mt-2.5 block text-xs font-medium text-white/50" htmlFor="date-from">
-              From
+              {language === 'ja' ? '開始日' : 'From'}
             </label>
             <input
               id="date-from"
@@ -90,7 +94,7 @@ export function DateFilterButton({
               className="date-input mt-1.5 py-2"
             />
             <label className="mt-3 block text-xs font-medium text-white/50" htmlFor="date-to">
-              To
+              {language === 'ja' ? '終了日' : 'To'}
             </label>
             <input
               id="date-to"

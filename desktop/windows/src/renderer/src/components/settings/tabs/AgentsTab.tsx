@@ -19,6 +19,7 @@ import type {
   CodingAgentAuthStatus,
   CodingAgentId
 } from '../../../../../shared/types'
+import { useI18n } from '../../../lib/i18n'
 
 type ExternalAgentId = Exclude<CodingAgentId, 'acp'>
 
@@ -75,6 +76,7 @@ type CodexKeyUi = {
 }
 
 export function AgentsTab(): React.JSX.Element {
+  const { language, t } = useI18n()
   const { agents, refresh } = useCodingAgents()
   const [commands, setCommands] = useState<Partial<Record<ExternalAgentId, string>>>(
     () => getPreferences().agentCommands ?? {}
@@ -287,17 +289,29 @@ export function AgentsTab(): React.JSX.Element {
         key={id}
         icon={Terminal}
         title={displayName}
-        subtitle={guide.description}
+        subtitle={
+          language === 'ja'
+            ? ({
+                openclaw:
+                  '独自のゲートウェイとモデル選択機能を持つオープンソースのAIコーディング支援です。',
+                hermes: 'ACPサーバーモードで接続するNous ResearchのHermesエージェントです。',
+                codex: '公式codex-acpブリッジを通じて動作するOpenAIのCodexエージェントです。'
+              }[id] ?? guide.description)
+            : guide.description
+        }
         keywords={`${id} coding agent acp command connect install detect api key`}
         dot={connected ? 'on' : 'off'}
         note={
           det ? (
             installed ? (
               <span className="text-sm text-emerald-400">
-                CLI installed{det.version ? ` · v${det.version}` : ''}
+                {language === 'ja' ? 'CLIインストール済み' : 'CLI installed'}
+                {det.version ? ` · v${det.version}` : ''}
               </span>
             ) : (
-              <span className="text-sm text-text-tertiary">CLI not found on PATH</span>
+              <span className="text-sm text-text-tertiary">
+                {language === 'ja' ? 'PATH上にCLIが見つかりません' : 'CLI not found on PATH'}
+              </span>
             )
           ) : null
         }
@@ -309,10 +323,16 @@ export function AgentsTab(): React.JSX.Element {
                 disabled={busy}
                 className="btn-ghost disabled:opacity-40"
               >
-                {busy ? 'Testing…' : 'Test'}
+                {busy
+                  ? language === 'ja'
+                    ? 'テスト中…'
+                    : 'Testing…'
+                  : language === 'ja'
+                    ? 'テスト'
+                    : 'Test'}
               </button>
               <button onClick={() => disconnect(id)} className="btn-ghost">
-                Disconnect
+                {language === 'ja' ? '切断' : 'Disconnect'}
               </button>
             </div>
           ) : (
@@ -321,7 +341,13 @@ export function AgentsTab(): React.JSX.Element {
               disabled={busy}
               className="btn-ghost disabled:opacity-40"
             >
-              {busy ? 'Connecting…' : 'Connect'}
+              {busy
+                ? language === 'ja'
+                  ? '接続中…'
+                  : 'Connecting…'
+                : language === 'ja'
+                  ? '接続'
+                  : 'Connect'}
             </button>
           )
         }
@@ -329,17 +355,33 @@ export function AgentsTab(): React.JSX.Element {
         {/* Install guidance when the CLI isn't detected. */}
         {!installed && (
           <div className="mb-3 rounded-lg bg-white/[0.04] p-3 text-sm text-text-tertiary">
-            <div className="mb-1 font-medium text-text-secondary">Install {displayName}</div>
+            <div className="mb-1 font-medium text-text-secondary">
+              {language === 'ja' ? `${displayName}をインストール` : `Install ${displayName}`}
+            </div>
             {guide.installCommands.map((cmd) => (
               <code key={cmd} className="mb-1 block font-mono text-xs text-text-secondary">
                 {cmd}
               </code>
             ))}
-            {guide.installNote && <div className="mb-1 text-xs">{guide.installNote}</div>}
+            {guide.installNote && (
+              <div className="mb-1 text-xs">
+                {language === 'ja'
+                  ? id === 'hermes'
+                    ? '公式ドキュメントに従ってHermes CLIをインストールしてください。'
+                    : guide.installNote
+                  : guide.installNote}
+              </div>
+            )}
             <div className="mt-2 flex items-center gap-4">
               {guide.installCommands.length > 0 && (
                 <button onClick={() => copyInstall(id)} className="text-xs underline">
-                  {copied[id] ? 'Copied' : 'Copy install command'}
+                  {copied[id]
+                    ? language === 'ja'
+                      ? 'コピーしました'
+                      : 'Copied'
+                    : language === 'ja'
+                      ? 'インストールコマンドをコピー'
+                      : 'Copy install command'}
                 </button>
               )}
               <a
@@ -348,23 +390,38 @@ export function AgentsTab(): React.JSX.Element {
                 rel="noreferrer"
                 className="text-xs underline"
               >
-                Setup guide
+                {language === 'ja' ? '設定ガイド' : 'Setup guide'}
               </a>
             </div>
           </div>
         )}
 
         {/* Sign-in pointer (we don't automate these external logins). */}
-        {!connected && <div className="mb-3 text-sm text-text-tertiary">{guide.authNote}</div>}
+        {!connected && (
+          <div className="mb-3 text-sm text-text-tertiary">
+            {language === 'ja'
+              ? {
+                  openclaw:
+                    'インストール後、端末で `openclaw onboard` を実行してログインしてください。',
+                  hermes: 'インストール後、端末で `hermes login` を実行してログインしてください。',
+                  codex: '`codex login` でログインするか、下にOpenAI APIキーを追加してください。'
+                }[id]
+              : guide.authNote}
+          </div>
+        )}
 
         {/* Codex-only: paste-your-OpenAI-key lane (validated, no browser sign-in). */}
         {guide.supportsApiKey && (
           <div className="mb-3 rounded-lg bg-white/[0.04] p-3">
-            <div className="mb-1 text-sm font-medium text-text-secondary">OpenAI API key</div>
+            <div className="mb-1 text-sm font-medium text-text-secondary">OpenAI APIキー</div>
             <div className="mb-2 text-xs text-text-tertiary">
               {codexKey.hasKey
-                ? 'A key is saved — Codex will use it to authenticate.'
-                : "Paste your OpenAI API key and we'll validate it — no browser sign-in needed."}
+                ? language === 'ja'
+                  ? 'キーは保存済みです。Codexの認証に使用します。'
+                  : 'A key is saved — Codex will use it to authenticate.'
+                : language === 'ja'
+                  ? 'OpenAI APIキーを貼り付けると確認して保存します。ブラウザーでのログインは不要です。'
+                  : "Paste your OpenAI API key and we'll validate it — no browser sign-in needed."}
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -387,7 +444,7 @@ export function AgentsTab(): React.JSX.Element {
                 disabled={codexKey.saving || !codexKey.input.trim()}
                 className="btn-ghost shrink-0 disabled:opacity-40"
               >
-                {codexKey.saving ? 'Saving…' : 'Save'}
+                {codexKey.saving ? (language === 'ja' ? '保存中…' : 'Saving…') : t('common.save')}
               </button>
               {codexKey.hasKey && (
                 <button
@@ -395,7 +452,7 @@ export function AgentsTab(): React.JSX.Element {
                   disabled={codexKey.saving}
                   className="btn-ghost shrink-0 disabled:opacity-40"
                 >
-                  Remove
+                  {language === 'ja' ? '削除' : 'Remove'}
                 </button>
               )}
             </div>
@@ -414,7 +471,13 @@ export function AgentsTab(): React.JSX.Element {
           onClick={() => setAdvancedOpen((s) => ({ ...s, [id]: !s[id] }))}
           className="text-xs text-text-tertiary underline"
         >
-          {advancedOpen[id] ? 'Hide advanced' : 'Advanced: custom launch command'}
+          {advancedOpen[id]
+            ? language === 'ja'
+              ? '詳細設定を隠す'
+              : 'Hide advanced'
+            : language === 'ja'
+              ? '詳細：起動コマンドを指定'
+              : 'Advanced: custom launch command'}
         </button>
         {advancedOpen[id] && (
           <div className="mt-2 flex items-center gap-2">
@@ -432,7 +495,7 @@ export function AgentsTab(): React.JSX.Element {
               spellCheck={false}
             />
             <button onClick={() => saveCommand(id)} className="btn-ghost shrink-0">
-              Save
+              {t('common.save')}
             </button>
           </div>
         )}
@@ -444,10 +507,9 @@ export function AgentsTab(): React.JSX.Element {
   return (
     <div>
       <p className="mb-2 text-sm text-text-tertiary">
-        Ask for an agent by name in chat or push-to-talk — “ask Codex to fix the failing test”, “use
-        Claude Code to add a readme” — and Omi hands the task over, streaming the agent’s progress
-        into the conversation. If the agent you named is down, Omi falls back to the next connected
-        one.
+        {language === 'ja'
+          ? 'チャットやプッシュトゥトークでエージェント名を指定すると、Omiが作業を引き継ぎ、進捗を会話へ表示します。指定したエージェントを利用できない場合は、接続済みの別のエージェントへ切り替えます。'
+          : 'Ask for an agent by name in chat or push-to-talk — “ask Codex to fix the failing test”, “use Claude Code to add a readme” — and Omi hands the task over, streaming the agent’s progress into the conversation. If the agent you named is down, Omi falls back to the next connected one.'}
       </p>
 
       <SettingRow
@@ -455,8 +517,12 @@ export function AgentsTab(): React.JSX.Element {
         title="Claude Code"
         subtitle={
           claudeConnected
-            ? 'Built in — signed in with your Claude account.'
-            : 'Built in — no install needed. Sign in with your Claude account to use it.'
+            ? language === 'ja'
+              ? '内蔵済みです。Claudeアカウントでログインしています。'
+              : 'Built in — signed in with your Claude account.'
+            : language === 'ja'
+              ? '内蔵済みのためインストールは不要です。Claudeアカウントでログインすると利用できます。'
+              : 'Built in — no install needed. Sign in with your Claude account to use it.'
         }
         keywords="claude code anthropic coding agent builtin sign in login authenticate"
         dot={claudeConnected ? 'on' : 'off'}
@@ -468,10 +534,16 @@ export function AgentsTab(): React.JSX.Element {
                 disabled={tests.acp?.running}
                 className="btn-ghost disabled:opacity-40"
               >
-                {tests.acp?.running ? 'Testing…' : 'Test'}
+                {tests.acp?.running
+                  ? language === 'ja'
+                    ? 'テスト中…'
+                    : 'Testing…'
+                  : language === 'ja'
+                    ? 'テスト'
+                    : 'Test'}
               </button>
               <button onClick={signOutOfClaude} className="btn-ghost">
-                Disconnect
+                {language === 'ja' ? '切断' : 'Disconnect'}
               </button>
             </div>
           ) : (
@@ -480,14 +552,22 @@ export function AgentsTab(): React.JSX.Element {
               disabled={claudeAuth.busy || claudeAuth.status === null}
               className="btn-ghost disabled:opacity-40"
             >
-              {claudeAuth.busy ? 'Signing in…' : 'Sign in to Claude'}
+              {claudeAuth.busy
+                ? language === 'ja'
+                  ? 'ログイン中…'
+                  : 'Signing in…'
+                : language === 'ja'
+                  ? 'Claudeにログイン'
+                  : 'Sign in to Claude'}
             </button>
           )
         }
       >
         {claudeAuth.busy && (
           <div className="mt-2 text-sm text-text-tertiary">
-            Finish signing in in your browser, then come back here.
+            {language === 'ja'
+              ? 'ブラウザーでログインを完了してから、ここへ戻ってください。'
+              : 'Finish signing in in your browser, then come back here.'}
           </div>
         )}
         {claudeAuth.error && <div className="mt-2 text-sm text-amber-400">{claudeAuth.error}</div>}

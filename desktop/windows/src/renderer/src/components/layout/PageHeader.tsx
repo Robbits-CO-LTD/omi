@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Pencil } from 'lucide-react'
+import { useI18n, type TranslationKey } from '../../lib/i18n'
 
 export function PageHeader(props: {
   title: string
+  titleKey?: TranslationKey
   subtitle?: string
   actions?: React.ReactNode
   /** When set, a back arrow is shown at the top-left and calls this on click. */
@@ -19,7 +21,9 @@ export function PageHeader(props: {
    */
   titleSlot?: React.ReactNode
 }): React.JSX.Element {
-  const { title, subtitle, actions, onBack, onRename, titleSlot } = props
+  const { title, titleKey, subtitle, actions, onBack, onRename, titleSlot } = props
+  const { t } = useI18n()
+  const displayTitle = titleKey ? t(titleKey) : title
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(title)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -50,8 +54,8 @@ export function PageHeader(props: {
             <button
               onClick={onBack}
               className="btn-ghost -ml-1 shrink-0 p-2"
-              title="Back to conversations"
-              aria-label="Back"
+              title={t('common.backToConversations')}
+              aria-label={t('common.back')}
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -74,7 +78,7 @@ export function PageHeader(props: {
             ) : onRename ? (
               <button
                 onClick={startEdit}
-                title="Rename"
+                title={t('common.rename')}
                 className="group flex max-w-full items-center gap-2 text-left"
               >
                 <h1 className="truncate font-display text-2xl font-bold tracking-tight text-white">
@@ -84,7 +88,7 @@ export function PageHeader(props: {
               </button>
             ) : (
               <h1 className="truncate font-display text-2xl font-bold tracking-tight text-white">
-                {title}
+                {displayTitle}
               </h1>
             )}
             {subtitle && <p className="mt-1 text-sm text-white/50">{subtitle}</p>}

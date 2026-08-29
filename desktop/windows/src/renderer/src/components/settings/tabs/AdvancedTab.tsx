@@ -19,6 +19,7 @@ import { fetchAllMemories } from '../../../lib/memoriesBulk'
 import { runMemoryExport } from '../../../lib/memoryExport'
 import { useMemories, type Memory } from '../../../hooks/useMemories'
 import { resetOnboarding } from '../../../lib/preferences'
+import { useI18n } from '../../../lib/i18n'
 import { SettingRow } from '../SettingRow'
 import { IntegrationsTab } from './IntegrationsTab'
 import { DeveloperKeysSection } from './DeveloperKeysSection'
@@ -27,6 +28,7 @@ import type { ExportMemory, FileIndexStatus, LocalKGStatus } from '../../../../.
 
 export function AdvancedTab(): React.JSX.Element {
   const { memories, refresh } = useMemories()
+  const { language } = useI18n()
 
   // --- File indexing ---
   const [fileIndex, setFileIndex] = useState<FileIndexStatus | null>(null)
@@ -259,7 +261,9 @@ export function AdvancedTab(): React.JSX.Element {
       >
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-text-tertiary">Exported from</span>
+            <span className="text-sm text-text-tertiary">
+              {language === 'ja' ? 'エクスポート元' : 'Exported from'}
+            </span>
             {(['chatgpt', 'claude'] as const).map((s) => (
               <button
                 key={s}
@@ -278,7 +282,11 @@ export function AdvancedTab(): React.JSX.Element {
               setProfile('')
             }}
             rows={5}
-            placeholder="Paste the assistant’s full reply here…"
+            placeholder={
+              language === 'ja'
+                ? 'アシスタントの回答全文をここに貼り付け…'
+                : 'Paste the assistant’s full reply here…'
+            }
             className="input-field resize-none"
           />
           <div className="flex items-center gap-2">
@@ -287,7 +295,13 @@ export function AdvancedTab(): React.JSX.Element {
               disabled={!dump.trim() || extracting || importing}
               className="btn-ghost disabled:opacity-40"
             >
-              {extracting ? 'Extracting…' : 'Extract memories'}
+              {extracting
+                ? language === 'ja'
+                  ? '抽出中…'
+                  : 'Extracting…'
+                : language === 'ja'
+                  ? 'メモリーを抽出'
+                  : 'Extract memories'}
             </button>
             {parsed && parsed.length > 0 && (
               <button
@@ -296,8 +310,12 @@ export function AdvancedTab(): React.JSX.Element {
                 className="btn-primary px-4 py-2 disabled:opacity-40"
               >
                 {importing
-                  ? 'Importing…'
-                  : `Import ${parsed.length} memor${parsed.length === 1 ? 'y' : 'ies'}`}
+                  ? language === 'ja'
+                    ? 'インポート中…'
+                    : 'Importing…'
+                  : language === 'ja'
+                    ? `${parsed.length}件のメモリーをインポート`
+                    : `Import ${parsed.length} memor${parsed.length === 1 ? 'y' : 'ies'}`}
               </button>
             )}
           </div>
@@ -321,7 +339,11 @@ export function AdvancedTab(): React.JSX.Element {
       <SettingRow
         icon={Upload}
         title="Export memories"
-        subtitle={`Export your ${memories.length} memor${memories.length === 1 ? 'y' : 'ies'} as Markdown (Obsidian, a plain file, or Notion).`}
+        subtitle={
+          language === 'ja'
+            ? `${memories.length}件の記憶をMarkdownとして書き出します（Obsidian、通常のファイル、Notion）。`
+            : `Export your ${memories.length} memor${memories.length === 1 ? 'y' : 'ies'} as Markdown (Obsidian, a plain file, or Notion).`
+        }
         keywords="export obsidian notion file markdown"
       >
         <div className="space-y-3">
@@ -331,30 +353,36 @@ export function AdvancedTab(): React.JSX.Element {
               disabled={exporting}
               className="btn-ghost disabled:opacity-40"
             >
-              Obsidian vault…
+              {language === 'ja' ? 'Obsidian保管庫…' : 'Obsidian vault…'}
             </button>
             <button
               onClick={() => runExport('file')}
               disabled={exporting}
               className="btn-ghost disabled:opacity-40"
             >
-              Plain file…
+              {language === 'ja' ? '通常のファイル…' : 'Plain file…'}
             </button>
           </div>
           <div className="border-t border-white/5 pt-3">
             <p className="mb-2 text-sm text-text-tertiary">
-              Notion — paste an internal-integration token and a page ID it can access.
+              {language === 'ja'
+                ? 'Notion — 内部インテグレーションのトークンと、アクセス可能なページIDを入力します。'
+                : 'Notion — paste an internal-integration token and a page ID it can access.'}
             </p>
             <input
               value={notionToken}
               onChange={(e) => setNotionToken(e.target.value)}
-              placeholder="Notion integration token (secret_…)"
+              placeholder={
+                language === 'ja'
+                  ? 'Notionインテグレーショントークン（secret_…）'
+                  : 'Notion integration token (secret_…)'
+              }
               className="glass-subtle mb-2 w-full rounded-lg px-4 py-3 text-sm text-text-secondary focus:outline-none"
             />
             <input
               value={notionPage}
               onChange={(e) => setNotionPage(e.target.value)}
-              placeholder="Parent page ID"
+              placeholder={language === 'ja' ? '親ページID' : 'Parent page ID'}
               className="glass-subtle mb-2 w-full rounded-lg px-4 py-3 text-sm text-text-secondary focus:outline-none"
             />
             <button
@@ -362,7 +390,13 @@ export function AdvancedTab(): React.JSX.Element {
               disabled={exporting}
               className="btn-ghost disabled:opacity-40"
             >
-              {exporting ? 'Exporting…' : 'Export to Notion'}
+              {exporting
+                ? language === 'ja'
+                  ? 'エクスポート中…'
+                  : 'Exporting…'
+                : language === 'ja'
+                  ? 'Notionへエクスポート'
+                  : 'Export to Notion'}
             </button>
           </div>
         </div>
@@ -381,7 +415,13 @@ export function AdvancedTab(): React.JSX.Element {
               disabled={memAuditing || memDeleting}
               className="btn-ghost disabled:opacity-40"
             >
-              {memAuditing ? 'Analyzing…' : 'Analyze memories'}
+              {memAuditing
+                ? language === 'ja'
+                  ? '分析中…'
+                  : 'Analyzing…'
+                : language === 'ja'
+                  ? 'メモリーを分析'
+                  : 'Analyze memories'}
             </button>
             {memBreakdown && memBreakdown.appIndexCount > 0 && (
               <button
@@ -390,17 +430,23 @@ export function AdvancedTab(): React.JSX.Element {
                 className="btn-primary px-4 py-2 disabled:opacity-40"
               >
                 {memDeleting
-                  ? `Deleting ${memDeleteProgress}/${memBreakdown.appIndexCount}…`
-                  : `Delete ${memBreakdown.appIndexCount} app/file memories`}
+                  ? language === 'ja'
+                    ? `${memDeleteProgress}/${memBreakdown.appIndexCount}件を削除中…`
+                    : `Deleting ${memDeleteProgress}/${memBreakdown.appIndexCount}…`
+                  : language === 'ja'
+                    ? `${memBreakdown.appIndexCount}件のアプリ／ファイルメモリーを削除`
+                    : `Delete ${memBreakdown.appIndexCount} app/file memories`}
               </button>
             )}
           </div>
           {memBreakdown && (
             <div className="glass-subtle rounded-lg px-4 py-3 text-sm text-text-tertiary">
               <p className="mb-2 text-text-secondary">
-                {memBreakdown.total} total memories ·{' '}
-                <span className="text-text-primary">{memBreakdown.appIndexCount}</span>{' '}
-                app/file-index matches
+                {language === 'ja'
+                  ? `全${memBreakdown.total}件のメモリー`
+                  : `${memBreakdown.total} total memories`}{' '}
+                · <span className="text-text-primary">{memBreakdown.appIndexCount}</span>{' '}
+                {language === 'ja' ? '件がアプリ／ファイル索引に一致' : 'app/file-index matches'}
               </p>
               {memBreakdown.appIndexCount > 0 && (
                 <ul className="mb-3 max-h-32 overflow-y-auto">
@@ -411,13 +457,20 @@ export function AdvancedTab(): React.JSX.Element {
                   ))}
                 </ul>
               )}
-              <p className="mb-1 text-text-secondary">Breakdown by tag (not deleted):</p>
+              <p className="mb-1 text-text-secondary">
+                {language === 'ja'
+                  ? 'タグ別の内訳（削除対象外）：'
+                  : 'Breakdown by tag (not deleted):'}
+              </p>
               <ul className="max-h-40 overflow-y-auto">
                 {memBreakdown.groups.map((g) => (
                   <li key={g.key} className="py-0.5">
                     <span className="text-text-primary">{g.count}</span> — {g.key}
                     {g.samples[0] ? (
-                      <span className="opacity-60"> · e.g. “{g.samples[0]}”</span>
+                      <span className="opacity-60">
+                        {' '}
+                        · {language === 'ja' ? '例' : 'e.g.'} “{g.samples[0]}”
+                      </span>
                     ) : null}
                   </li>
                 ))}
@@ -451,7 +504,13 @@ export function AdvancedTab(): React.JSX.Element {
         keywords="file index scan rescan local"
         control={
           <button onClick={rescan} disabled={scanning} className="btn-ghost disabled:opacity-40">
-            {scanning ? 'Indexing…' : 'Re-scan now'}
+            {scanning
+              ? language === 'ja'
+                ? '索引中…'
+                : 'Indexing…'
+              : language === 'ja'
+                ? '今すぐ再スキャン'
+                : 'Re-scan now'}
           </button>
         }
       />
@@ -475,7 +534,13 @@ export function AdvancedTab(): React.JSX.Element {
             disabled={rebuildingKg}
             className="btn-ghost disabled:opacity-40"
           >
-            {rebuildingKg ? 'Rebuilding…' : 'Rebuild now'}
+            {rebuildingKg
+              ? language === 'ja'
+                ? '再構築中…'
+                : 'Rebuilding…'
+              : language === 'ja'
+                ? '今すぐ再構築'
+                : 'Rebuild now'}
           </button>
         }
       />
@@ -487,7 +552,7 @@ export function AdvancedTab(): React.JSX.Element {
         keywords="onboarding wizard replay reset"
         control={
           <button onClick={replayOnboarding} className="btn-ghost">
-            Replay
+            {language === 'ja' ? '再実行' : 'Replay'}
           </button>
         }
       />

@@ -7,6 +7,8 @@ import {
   hasPaidSubscription
 } from '../../../lib/billing'
 import type { UserSubscriptionResponse } from '../../../lib/omiApi.generated'
+import { useI18n } from '../../../lib/i18n'
+import { localizeSettingsText } from '../../../lib/settingsText'
 
 /**
  * Current-plan card (AccountBilling "planusage.current"): plan title + billing
@@ -20,6 +22,7 @@ export function CurrentPlanCard(props: {
   onManage: () => void
   onRefresh: () => void
 }): React.JSX.Element {
+  const { language } = useI18n()
   const { sub, portalBusy, refreshing, onManage, onRefresh } = props
   const subscription = sub.subscription
   const paid = hasPaidSubscription(subscription)
@@ -28,8 +31,11 @@ export function CurrentPlanCard(props: {
   return (
     <BillingCard
       icon={CreditCard}
-      title={resolvePlanTitle(subscription, sub.available_plans)}
-      subtitle={currentPlanSubtitle(subscription, sub.available_plans)}
+      title={localizeSettingsText(language, resolvePlanTitle(subscription, sub.available_plans))}
+      subtitle={localizeSettingsText(
+        language,
+        currentPlanSubtitle(subscription, sub.available_plans)
+      )}
       trailing={
         paid ? (
           <button
@@ -38,7 +44,7 @@ export function CurrentPlanCard(props: {
             className="btn-ghost disabled:opacity-50"
           >
             {portalBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Manage
+            {language === 'ja' ? '管理' : 'Manage'}
           </button>
         ) : (
           <button
@@ -47,12 +53,16 @@ export function CurrentPlanCard(props: {
             className="btn-ghost disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            {language === 'ja' ? '更新' : 'Refresh'}
           </button>
         )
       }
     >
-      {periodText ? <div className="text-sm text-text-tertiary">{periodText}</div> : null}
+      {periodText ? (
+        <div className="text-sm text-text-tertiary">
+          {localizeSettingsText(language, periodText)}
+        </div>
+      ) : null}
     </BillingCard>
   )
 }

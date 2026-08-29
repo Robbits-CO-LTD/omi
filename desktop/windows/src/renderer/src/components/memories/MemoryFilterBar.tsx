@@ -8,6 +8,8 @@ import {
   type MemoryCategory,
   type MemoryLayerFilter
 } from '../../lib/memoryFilters'
+import { useI18n } from '../../lib/i18n'
+import type { UiLanguage } from '../../lib/preferences'
 
 // The layer filter renders Default / Short-term / Long-term only. "Archive" is a
 // server-side explicit-archive scope on Mac; the default /v3/memories read never
@@ -29,10 +31,35 @@ type MemoryFilterBarProps = {
   onLayerChange: (l: MemoryLayerFilter) => void
 }
 
-function categoryButtonLabel(categories: Set<MemoryCategory>): string {
-  if (categories.size === 0) return 'All categories'
-  if (categories.size === 1) return CATEGORY_LABEL[[...categories][0]]
-  return `${categories.size} selected`
+function categoryLabel(category: MemoryCategory, language: UiLanguage): string {
+  if (language === 'en') return CATEGORY_LABEL[category]
+  return {
+    manual: '手動',
+    system: 'あなたについて',
+    interesting: 'インサイト',
+    workflow: '作業手順'
+  }[category]
+}
+
+function layerLabel(layer: MemoryLayerFilter, language: UiLanguage): string {
+  if (language === 'en') return LAYER_FILTER_LABEL[layer]
+  return { default: '標準', short_term: '短期', long_term: '長期', archive: 'アーカイブ' }[layer]
+}
+
+function layerDescription(layer: MemoryLayerFilter, language: UiLanguage): string {
+  if (language === 'en') return LAYER_FILTER_DESC[layer]
+  return {
+    default: '短期＋長期',
+    short_term: '出典に基づく新しい記憶',
+    long_term: '定着した記憶',
+    archive: '明示的なアーカイブ検索'
+  }[layer]
+}
+
+function categoryButtonLabel(categories: Set<MemoryCategory>, language: UiLanguage): string {
+  if (categories.size === 0) return language === 'ja' ? 'すべてのカテゴリ' : 'All categories'
+  if (categories.size === 1) return categoryLabel([...categories][0], language)
+  return language === 'ja' ? `${categories.size}件を選択` : `${categories.size} selected`
 }
 
 export function MemoryFilterBar({
@@ -46,6 +73,8 @@ export function MemoryFilterBar({
   layer,
   onLayerChange
 }: MemoryFilterBarProps): React.JSX.Element {
+  const { language, t } = useI18n()
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       {/* Search */}
@@ -54,14 +83,14 @@ export function MemoryFilterBar({
         <input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search memories…"
+          placeholder={language === 'ja' ? '記憶を検索…' : 'Search memories…'}
           className="input-field w-full py-2 pl-9 pr-9 text-sm"
         />
         {search && (
           <button
             onClick={() => onSearchChange('')}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-white/40 hover:text-white/80"
-            aria-label="Clear search"
+            aria-label={language === 'ja' ? '検索をクリア' : 'Clear search'}
           >
             <X className="h-4 w-4" />
           </button>
@@ -80,7 +109,7 @@ export function MemoryFilterBar({
             }`}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
-            {categoryButtonLabel(categories)}
+            {categoryButtonLabel(categories, language)}
             <ChevronDown className="h-3.5 w-3.5 opacity-60" />
           </button>
         </DropdownMenu.Trigger>
@@ -103,7 +132,7 @@ export function MemoryFilterBar({
                   <span className="flex h-4 w-4 items-center justify-center rounded border border-white/25">
                     {checked && <Check className="h-3 w-3 text-white" />}
                   </span>
-                  <span className="flex-1">{CATEGORY_LABEL[c]}</span>
+                  <span className="flex-1">{categoryLabel(c, language)}</span>
                   <span className="text-white/35">{categoryCounts[c] ?? 0}</span>
                 </DropdownMenu.CheckboxItem>
               )
@@ -115,7 +144,7 @@ export function MemoryFilterBar({
                   onSelect={onClearCategories}
                   className="cursor-pointer rounded-lg px-2.5 py-1.5 text-[13px] text-white/60 outline-none data-[highlighted]:bg-white/5"
                 >
-                  Clear
+                  {t('common.clear')}
                 </DropdownMenu.Item>
               </>
             )}
@@ -136,7 +165,7 @@ export function MemoryFilterBar({
               }`}
             >
               <Clock className="h-3.5 w-3.5" />
-              {LAYER_FILTER_LABEL[layer]}
+              {layerLabel(layer, language)}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </button>
           </DropdownMenu.Trigger>
@@ -160,9 +189,9 @@ export function MemoryFilterBar({
                       {layer === l && <span className="h-2 w-2 rounded-full bg-white" />}
                     </span>
                     <span className="flex-1">
-                      <span className="block text-white/90">{LAYER_FILTER_LABEL[l]}</span>
+                      <span className="block text-white/90">{layerLabel(l, language)}</span>
                       <span className="block text-[11px] text-white/40">
-                        {LAYER_FILTER_DESC[l]}
+                        {layerDescription(l, language)}
                       </span>
                     </span>
                   </DropdownMenu.RadioItem>

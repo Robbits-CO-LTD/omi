@@ -36,6 +36,7 @@ import { SettingRow } from '../SettingRow'
 import { acceleratorToTokens, DEFAULT_OVERLAY_ACCELERATOR } from '../../../lib/overlayShortcut'
 import { useChordRecorder } from '../../../hooks/useChordRecorder'
 import { DEFAULT_RECORD_HOTKEY } from '../../../../../shared/hotkeyDefaults'
+import { useI18n } from '../../../lib/i18n'
 
 export function ShortcutsTab(): React.JSX.Element {
   return (
@@ -109,6 +110,7 @@ function ShortcutCard(props: {
    *  (Record card only; Summon omits it — it's coupled to push-to-talk). */
   onSetEnabled?: (enabled: boolean) => Promise<RecordHotkeyState>
 }): React.JSX.Element {
+  const { language } = useI18n()
   const { icon, title, subtitle, keywords, defaultAccel, load, commit, onCommitted, onSetEnabled } =
     props
   const [accel, setAccel] = useState<string | null>(null)
@@ -210,20 +212,24 @@ function ShortcutCard(props: {
           {/* Default preset chip. */}
           <Chip selected={isDefault} onClick={() => void selectDefault()}>
             <Keycaps accel={defaultAccel} />
-            <span className="text-white/50">Default</span>
+            <span className="text-white/50">{language === 'ja' ? '既定' : 'Default'}</span>
           </Chip>
 
           {/* Custom chip — shows the current custom chord, or records a new one. */}
           <Chip selected={isCustom} onClick={() => recorder.start()} disabled={recorder.recording}>
             {recorder.recording ? (
-              <span className="text-white/60">Press keys… (Esc to cancel)</span>
+              <span className="text-white/60">
+                {language === 'ja'
+                  ? 'キーを押してください…（Escで中止）'
+                  : 'Press keys… (Esc to cancel)'}
+              </span>
             ) : isCustom && accel ? (
               <>
                 <Keycaps accel={accel} />
-                <span className="text-white/50">Custom</span>
+                <span className="text-white/50">{language === 'ja' ? 'カスタム' : 'Custom'}</span>
               </>
             ) : (
-              <span>Custom…</span>
+              <span>{language === 'ja' ? 'カスタム…' : 'Custom…'}</span>
             )}
           </Chip>
 
@@ -231,16 +237,21 @@ function ShortcutCard(props: {
               chord entirely; the presets stay visible so the user can re-pick. */}
           {onSetEnabled && (
             <Chip selected={!enabled} onClick={() => void selectOff()}>
-              <span>Off</span>
+              <span>{language === 'ja' ? 'オフ' : 'Off'}</span>
             </Chip>
           )}
         </div>
 
         {!enabled ? (
-          <p className="text-xs text-white/40">Recording shortcut is off.</p>
+          <p className="text-xs text-white/40">
+            {language === 'ja' ? '録音ショートカットはオフです。' : 'Recording shortcut is off.'}
+          </p>
         ) : error || !registered ? (
           <p className="text-xs text-amber-300">
-            {error ?? 'This shortcut is held by another app — pick a different one.'}
+            {error ??
+              (language === 'ja'
+                ? 'このショートカットは別のアプリが使用中です。別の組み合わせを選んでください。'
+                : 'This shortcut is held by another app — pick a different one.')}
           </p>
         ) : null}
       </div>

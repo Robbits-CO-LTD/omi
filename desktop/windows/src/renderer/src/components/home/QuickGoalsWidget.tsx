@@ -7,6 +7,7 @@ import { toast } from '../../lib/toast'
 import { GenerateGoalsButton } from '../ui/GenerateGoalsButton'
 import { goalEmoji } from '../../lib/goalEmoji'
 import { isCompleted, progressColor, progressPct } from '../../lib/goalVisuals'
+import { useI18n } from '../../lib/i18n'
 
 // Compact dashboard surface for the idle Home screen: the active goals with
 // their progress, mirroring the macOS dashboard Goals widget. Reads the same
@@ -25,6 +26,7 @@ type Goal = {
 const MAX_SHOWN = 2
 
 export function QuickGoalsWidget({ onReady }: { onReady?: () => void }): React.JSX.Element | null {
+  const { t } = useI18n()
   const [goals, setGoals] = useState<Goal[] | null>(null)
   const { pathname } = useLocation()
   // Tell the parent once our data has loaded, so it can reveal both widgets
@@ -120,7 +122,11 @@ export function QuickGoalsWidget({ onReady }: { onReady?: () => void }): React.J
   if (goals.length === 0) {
     return (
       <div className="widget-card items-center justify-center">
-        <GenerateGoalsButton onClick={generate} loading={generating} />
+        <GenerateGoalsButton
+          onClick={generate}
+          loading={generating}
+          label={t('home.generateGoals')}
+        />
       </div>
     )
   }
@@ -134,7 +140,7 @@ export function QuickGoalsWidget({ onReady }: { onReady?: () => void }): React.J
           <Target className="h-4 w-4 text-white/70" />
         </div>
         <div className="flex flex-1 items-center gap-1.5 text-sm font-medium text-white/85">
-          Goals
+          {t('pages.goals')}
           <span className="text-white/35">{goals.length}</span>
         </div>
         <ChevronRight className="h-4 w-4 shrink-0 text-white/25 transition-colors group-hover:text-white/50" />
@@ -163,7 +169,9 @@ export function QuickGoalsWidget({ onReady }: { onReady?: () => void }): React.J
           )
         })}
         {goals.length > MAX_SHOWN && (
-          <p className="text-[11px] text-white/35">+{goals.length - MAX_SHOWN} more</p>
+          <p className="text-[11px] text-white/35">
+            +{goals.length - MAX_SHOWN} {t('home.more')}
+          </p>
         )}
       </div>
     </Link>

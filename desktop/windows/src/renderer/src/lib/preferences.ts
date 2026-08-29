@@ -15,6 +15,8 @@ export const FONT_SCALE_MIN = 0.5
 export const FONT_SCALE_MAX = 2.0
 export const FONT_SCALE_DEFAULT = 1.0
 
+export type UiLanguage = 'en' | 'ja'
+
 // Font scale is user-tunable in [0.5, 2.0] (see lib/fontScale.ts). Clamp on both
 // read and write so a hand-edited localStorage blob can't push the whole UI to an
 // unusable size; drop non-finite junk so the 1.0 default applies.
@@ -30,6 +32,9 @@ export type Preferences = {
   captionIntervalMs: number
   showRecordingBadge: boolean
   reduceMotion: boolean
+  // Language used by the desktop interface. Kept separate from `language`,
+  // which controls speech transcription and backend language hints.
+  uiLanguage: UiLanguage
   // Set during the startup wizard.
   displayName?: string
   language: string
@@ -147,6 +152,7 @@ const defaults: Preferences = {
   captionIntervalMs: 2000,
   showRecordingBadge: true,
   reduceMotion: false,
+  uiLanguage: 'en',
   language: DEFAULT_LANGUAGE,
   // Infinite by default: one ongoing conversation that persists across launches
   // and is accessible from the beginning (the Home thread windows it in as you

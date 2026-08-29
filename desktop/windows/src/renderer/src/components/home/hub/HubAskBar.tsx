@@ -11,11 +11,19 @@ import { filesToPickedChatFiles } from '../../../lib/chatDropFiles'
 import { usePendingAttachments } from '../../../hooks/usePendingAttachments'
 import { AttachmentChip } from './AttachmentChip'
 import type { PickedChatFile } from '../../../../../shared/types'
+import { useI18n } from '../../../lib/i18n'
+import type { UiLanguage } from '../../../lib/preferences'
 
 // A one-line summary of what the attachment layer rejected, so files never drop
 // silently (Mac surfaces these). Reasons are ranked by how actionable they are.
-function describeRejections(rejected: { reason: RejectReason }[]): string {
+function describeRejections(rejected: { reason: RejectReason }[], language: UiLanguage): string {
   const reasons = new Set(rejected.map((r) => r.reason))
+  if (language === 'ja') {
+    if (reasons.has('too_large')) return '25 MBを超えるファイルがあります。'
+    if (reasons.has('cap_exceeded'))
+      return `添付できるファイルは${MAX_CHAT_ATTACHMENTS}件までです。`
+    return '追加できなかったファイルがあります。'
+  }
   if (reasons.has('too_large')) return 'Some files exceed the 25 MB limit.'
   if (reasons.has('cap_exceeded')) return `You can attach up to ${MAX_CHAT_ATTACHMENTS} files.`
   return "Some files couldn't be added."
@@ -48,6 +56,7 @@ export function HubAskBar(props: {
    *  goes nowhere. */
   autoFocus?: boolean
 }): React.JSX.Element {
+  const { language, t } = useI18n()
   const { value, onChange, onSubmit, onFocus, sending, connectActive, onToggleConnect, autoFocus } =
     props
   const [focused, setFocused] = useState(false)
@@ -67,7 +76,7 @@ export function HubAskBar(props: {
   // (over the 4-file cap, over 25 MB, or unreadable) rather than dropping silently.
   const stage = (picked: PickedChatFile[]): void => {
     const { rejected } = addAttachments(picked)
-    setRejectNote(rejected.length > 0 ? describeRejections(rejected) : null)
+    setRejectNote(rejected.length > 0 ? describeRejections(rejected, language) : null)
   }
 
   const pickFiles = async (): Promise<void> => {
@@ -157,7 +166,11 @@ export function HubAskBar(props: {
           onClick={pickFiles}
           disabled={atCap}
           aria-label={
-            atCap ? `Attachment limit reached (${MAX_CHAT_ATTACHMENTS} files)` : 'Attach files'
+            atCap
+              ? language === 'ja'
+                ? `添付上限に達しました（${MAX_CHAT_ATTACHMENTS}件）`
+                : `Attachment limit reached (${MAX_CHAT_ATTACHMENTS} files)`
+              : t('home.attachFiles')
           }
           className={cn(
             'focus-ring mr-1 flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full',
@@ -190,8 +203,8 @@ export function HubAskBar(props: {
             // the keystroke the user meant for the IME.
             if (e.key === 'Enter' && !e.nativeEvent.isComposing) onSubmit()
           }}
-          placeholder="Ask omi anything"
-          aria-label="Ask omi anything"
+          placeholder={t('home.ask')}
+          aria-label={t('home.ask')}
           className="mr-3 min-w-0 flex-1 border-0 bg-transparent text-[15px] text-home-ink placeholder:text-home-muted focus:outline-none focus:ring-0"
         />
 
@@ -209,7 +222,7 @@ export function HubAskBar(props: {
           <div
             role="status"
             aria-busy="true"
-            aria-label="Omi is replying"
+            aria-label={t('home.replying')}
             className="flex h-[34px] w-[34px] shrink-0 items-center justify-center"
           >
             <Loader2 className="h-4 w-4 animate-spin text-home-muted" strokeWidth={2.5} />
@@ -218,7 +231,7 @@ export function HubAskBar(props: {
           <button
             type="button"
             onClick={onSubmit}
-            aria-label="Send"
+            aria-label={t('home.send')}
             className="focus-ring flex h-[34px] w-[34px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-home-paper transition-opacity duration-150 hover:opacity-90"
           >
             <ArrowUp className="h-[13px] w-[13px]" strokeWidth={2.75} />
@@ -237,7 +250,7 @@ export function HubAskBar(props: {
             )}
           >
             <LinkIcon className="h-[11px] w-[11px] shrink-0" strokeWidth={2.5} />
-            Connect
+            {t('home.connect')}
           </button>
         )}
       </div>

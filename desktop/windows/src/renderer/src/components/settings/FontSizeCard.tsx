@@ -9,12 +9,14 @@ import {
 } from '../../lib/fontScale'
 import { SettingRow } from './SettingRow'
 import { Slider } from './controls/Slider'
+import { useI18n } from '../../lib/i18n'
 
 // General → Font Size (macOS §3.1). Scales the whole main-window UI via the root
 // rem multiplier (lib/fontScale.ts). The slider + Reset button write `fontScale`;
 // the app-wide Ctrl+= / Ctrl+- / Ctrl+0 shortcuts (also in fontScale.ts) write it
 // too, and the subscription below keeps this card's UI in step with either path.
 export function FontSizeCard(): React.JSX.Element {
+  const { t } = useI18n()
   const [scale, setScale] = useState(() => clampFontScale(getPreferences().fontScale))
 
   // Reflect changes from every source: this card, the keyboard shortcuts, and
@@ -29,8 +31,8 @@ export function FontSizeCard(): React.JSX.Element {
   return (
     <SettingRow
       icon={ALargeSmall}
-      title="Font Size"
-      subtitle={`Scale: ${Math.round(scale * 100)}%`}
+      title={t('settings.fontSize.title')}
+      subtitle={`${t('settings.fontSize.scale')}: ${Math.round(scale * 100)}%`}
       keywords="font size text scale zoom larger smaller accessibility readability"
       control={
         !isDefault ? (
@@ -40,7 +42,7 @@ export function FontSizeCard(): React.JSX.Element {
             className="rounded-md px-1.5 py-0.5 text-[13px] font-medium transition-colors hover:bg-white/5"
             style={{ color: 'var(--info)' }}
           >
-            Reset
+            {t('settings.fontSize.reset')}
           </button>
         ) : undefined
       }
@@ -54,19 +56,19 @@ export function FontSizeCard(): React.JSX.Element {
           max={FONT_SCALE_MAX}
           step={0.05}
           tint="var(--info)"
-          ariaLabel="Font size"
+          ariaLabel={t('settings.fontSize.title')}
           leftLabel={<span style={{ fontSize: 12, lineHeight: 1 }}>A</span>}
           rightLabel={<span style={{ fontSize: 18, lineHeight: 1 }}>A</span>}
         />
 
         {/* Live preview — rem-based text scales with the applied root multiplier. */}
-        <p className="text-sm text-text-secondary">The quick brown fox jumps over the lazy dog</p>
+        <p className="text-sm text-text-secondary">{t('settings.fontSize.preview')}</p>
 
         {/* Keyboard shortcut hints */}
         <div className="flex flex-col gap-1.5">
-          <ShortcutHint label="Increase font size" keys={['Ctrl', '+']} />
-          <ShortcutHint label="Decrease font size" keys={['Ctrl', '−']} />
-          <ShortcutHint label="Reset font size" keys={['Ctrl', '0']} />
+          <ShortcutHint label={t('settings.fontSize.increase')} keys={['Ctrl', '+']} />
+          <ShortcutHint label={t('settings.fontSize.decrease')} keys={['Ctrl', '−']} />
+          <ShortcutHint label={t('settings.fontSize.resetFont')} keys={['Ctrl', '0']} />
         </div>
 
         {/* Reset the main window to its default size */}
@@ -77,7 +79,7 @@ export function FontSizeCard(): React.JSX.Element {
             className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--bg-tertiary)] px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-white/10"
           >
             <RotateCcw className="h-3 w-3" strokeWidth={2} />
-            Reset Window Size
+            {t('settings.fontSize.resetWindow')}
           </button>
         </div>
       </div>

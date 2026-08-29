@@ -25,12 +25,14 @@ import type {
   InsightSettings,
   AssistantSettingsView
 } from '../../../../../shared/types'
+import { useI18n } from '../../../lib/i18n'
 
 // Preset cadences offered for proactive insights (minutes). Each run is a Gemini
 // call via Omi's proxy, so longer intervals mean less backend cost.
 const INSIGHT_INTERVALS = [15, 20, 30, 60]
 
 export function RewindTab(): React.JSX.Element {
+  const { language, t } = useI18n()
   const [rewind, setRewind] = useState<RewindSettings | null>(null)
   const [screenSynth, setScreenSynth] = useState<ScreenSynthState | null>(null)
   const [insight, setInsight] = useState<InsightSettings | null>(null)
@@ -156,7 +158,15 @@ export function RewindTab(): React.JSX.Element {
                   : 'rounded-md px-2.5 py-1 text-xs text-white/50 hover:text-white/80'
               }
             >
-              {m === 'off' ? 'Off' : m === 'dry-run' ? 'Preview' : 'Delete'}
+              {m === 'off'
+                ? language === 'ja'
+                  ? 'オフ'
+                  : 'Off'
+                : m === 'dry-run'
+                  ? language === 'ja'
+                    ? 'プレビュー'
+                    : 'Preview'
+                  : t('common.delete')}
             </button>
           ))}
         </div>
@@ -191,16 +201,16 @@ export function RewindTab(): React.JSX.Element {
             className="rounded-md bg-white/10 px-2 py-1.5 text-sm text-white focus:outline-none disabled:opacity-40"
           >
             <option value={1000} className="bg-neutral-900">
-              Every 1s
+              {language === 'ja' ? '1秒ごと' : 'Every 1s'}
             </option>
             <option value={2000} className="bg-neutral-900">
-              Every 2s
+              {language === 'ja' ? '2秒ごと' : 'Every 2s'}
             </option>
             <option value={5000} className="bg-neutral-900">
-              Every 5s
+              {language === 'ja' ? '5秒ごと' : 'Every 5s'}
             </option>
             <option value={10000} className="bg-neutral-900">
-              Every 10s
+              {language === 'ja' ? '10秒ごと' : 'Every 10s'}
             </option>
           </select>
         }
@@ -221,13 +231,13 @@ export function RewindTab(): React.JSX.Element {
             className="rounded-md bg-white/10 px-2 py-1.5 text-sm text-white focus:outline-none disabled:opacity-40"
           >
             <option value="standard" className="bg-neutral-900">
-              Standard (720p)
+              {language === 'ja' ? '標準（720p）' : 'Standard (720p)'}
             </option>
             <option value="high" className="bg-neutral-900">
-              High (1080p)
+              {language === 'ja' ? '高画質（1080p）' : 'High (1080p)'}
             </option>
             <option value="max" className="bg-neutral-900">
-              Maximum (1440p)
+              {language === 'ja' ? '最高画質（1440p）' : 'Maximum (1440p)'}
             </option>
           </select>
         }
@@ -251,7 +261,7 @@ export function RewindTab(): React.JSX.Element {
               disabled={!rewind}
               className="w-16 rounded-md bg-white/10 px-2 py-1.5 text-white focus:outline-none disabled:opacity-40"
             />
-            days
+            {language === 'ja' ? '日' : 'days'}
           </div>
         }
       />
@@ -272,7 +282,7 @@ export function RewindTab(): React.JSX.Element {
                   addExcludedApp()
                 }
               }}
-              placeholder="App name (e.g. Banking)"
+              placeholder={language === 'ja' ? 'アプリ名（例：銀行）' : 'App name (e.g. Banking)'}
               className="flex-1 rounded-lg bg-white/10 px-3 py-2 text-sm text-text-secondary focus:outline-none"
             />
             <button
@@ -280,7 +290,7 @@ export function RewindTab(): React.JSX.Element {
               disabled={!newExcluded.trim()}
               className="btn-ghost disabled:opacity-40"
             >
-              Add
+              {t('common.add')}
             </button>
           </div>
           {/* User additions — removable. */}
@@ -305,11 +315,14 @@ export function RewindTab(): React.JSX.Element {
           )}
           {/* Built-in, always-on exclusions (not removable). */}
           <div className="rounded-lg bg-white/[0.04] px-3 py-2 text-xs leading-relaxed text-text-tertiary">
-            <span className="text-text-secondary">Always excluded:</span>{' '}
+            <span className="text-text-secondary">
+              {language === 'ja' ? '常に除外：' : 'Always excluded:'}
+            </span>{' '}
             {['Omi', ...BUILT_IN_EXCLUDED_APPS].join(' · ')}.
             <span className="mt-1 block">
-              Login, password, and private-browsing screens are skipped automatically (by window
-              title).
+              {language === 'ja'
+                ? 'ログイン、パスワード、プライベートブラウズの画面は、ウィンドウ名をもとに自動で除外します。'
+                : 'Login, password, and private-browsing screens are skipped automatically (by window title).'}
             </span>
           </div>
         </div>
@@ -334,7 +347,11 @@ export function RewindTab(): React.JSX.Element {
           <div className="space-y-2">
             <textarea
               rows={2}
-              placeholder="Denylist — one app/site keyword per line (e.g. therapy, salary)"
+              placeholder={
+                language === 'ja'
+                  ? '除外語句 — アプリやサイトのキーワードを1行に1件（例：治療、給与）'
+                  : 'Denylist — one app/site keyword per line (e.g. therapy, salary)'
+              }
               defaultValue={screenSynth.denylist.join('\n')}
               onBlur={(e) =>
                 void patchScreenSynth({
@@ -349,11 +366,15 @@ export function RewindTab(): React.JSX.Element {
             <div className="flex items-center justify-between">
               <span className="text-xs text-text-tertiary">
                 {screenSynth.lastRunAt
-                  ? `Last run ${new Date(screenSynth.lastRunAt).toLocaleString()} — ${screenSynth.lastCount} memories`
-                  : 'Not run yet'}
+                  ? language === 'ja'
+                    ? `最終実行 ${new Date(screenSynth.lastRunAt).toLocaleString()}・${screenSynth.lastCount}件の記憶`
+                    : `Last run ${new Date(screenSynth.lastRunAt).toLocaleString()} — ${screenSynth.lastCount} memories`
+                  : language === 'ja'
+                    ? '未実行'
+                    : 'Not run yet'}
               </span>
               <button onClick={() => void synthesizeNow()} className="btn-ghost">
-                Synthesize now
+                {language === 'ja' ? '今すぐ作成' : 'Synthesize now'}
               </button>
             </div>
           </div>
@@ -369,9 +390,9 @@ export function RewindTab(): React.JSX.Element {
         note={
           insightsSilenced ? (
             <span className="text-xs text-amber-400/90">
-              Notifications are off, so insights never run — a test notification still shows because
-              it bypasses this. Turn Notifications on and raise the frequency above Off in Settings
-              → Notifications.
+              {language === 'ja'
+                ? '通知がオフのため、インサイトは実行されません。テスト通知だけはこの設定を迂回して表示されます。「設定」→「通知」で通知をオンにし、頻度をオフより上げてください。'
+                : 'Notifications are off, so insights never run — a test notification still shows because it bypasses this. Turn Notifications on and raise the frequency above Off in Settings → Notifications.'}
             </span>
           ) : undefined
         }
@@ -387,7 +408,7 @@ export function RewindTab(): React.JSX.Element {
         {insight && (
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm text-text-secondary">
-              Check every
+              {language === 'ja' ? '確認間隔' : 'Check every'}
               <select
                 value={INSIGHT_INTERVALS.includes(insight.intervalMin) ? insight.intervalMin : 15}
                 onChange={(e) => void patchInsight({ intervalMin: Number(e.target.value) })}
@@ -395,13 +416,13 @@ export function RewindTab(): React.JSX.Element {
               >
                 {INSIGHT_INTERVALS.map((m) => (
                   <option key={m} value={m} className="bg-neutral-900">
-                    {m} minutes
+                    {language === 'ja' ? `${m}分` : `${m} minutes`}
                   </option>
                 ))}
               </select>
             </label>
             <label className="flex items-center gap-2 text-sm text-text-secondary">
-              Notification style
+              {language === 'ja' ? '通知の種類' : 'Notification style'}
               <select
                 value={insight.notificationStyle}
                 onChange={(e) =>
@@ -412,19 +433,23 @@ export function RewindTab(): React.JSX.Element {
                 className="rounded-md bg-white/10 px-2 py-1.5 text-white focus:outline-none"
               >
                 <option value="omi" className="bg-neutral-900">
-                  Omi notification
+                  {language === 'ja' ? 'Omi通知' : 'Omi notification'}
                 </option>
                 <option value="native" className="bg-neutral-900">
-                  Windows notification
+                  {language === 'ja' ? 'Windows通知' : 'Windows notification'}
                 </option>
               </select>
             </label>
             <button onClick={() => window.omi.insightTest()} className="btn-ghost self-start">
-              Send a test notification
+              {language === 'ja' ? 'テスト通知を送信' : 'Send a test notification'}
             </button>
             <textarea
               rows={2}
-              placeholder="Denylist — one app/site keyword per line (e.g. therapy, salary)"
+              placeholder={
+                language === 'ja'
+                  ? '除外語句 — アプリやサイトのキーワードを1行に1件（例：治療、給与）'
+                  : 'Denylist — one app/site keyword per line (e.g. therapy, salary)'
+              }
               defaultValue={insight.denylist.join('\n')}
               onBlur={(e) =>
                 void patchInsight({

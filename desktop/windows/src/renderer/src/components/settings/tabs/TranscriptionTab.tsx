@@ -27,12 +27,14 @@ import { syncLanguage } from '../../../lib/userProfile'
 import { toast } from '../../../lib/toast'
 import { SettingRow } from '../SettingRow'
 import { Toggle } from '../Toggle'
+import { useI18n } from '../../../lib/i18n'
 
 const AUTO_DETECT = 'multi'
 // Single-language choices exclude the 'multi' auto-detect sentinel.
 const SINGLE_LANGUAGES = LANGUAGES.filter((l) => l.code !== AUTO_DETECT)
 
 export function TranscriptionTab(): React.JSX.Element {
+  const { language: uiLanguage } = useI18n()
   const [language, setLanguageState] = useState(() => getPreferences().language)
   // Remember the last single-language pick so toggling auto-detect on then off
   // restores it instead of snapping back to English.
@@ -70,18 +72,28 @@ export function TranscriptionTab(): React.JSX.Element {
           <RadioCard
             selected={autoDetect}
             onSelect={() => applyLanguage(AUTO_DETECT)}
-            title="Auto-detect (multi-language)"
-            subtitle="Detects and transcribes several languages at once — best when you switch languages."
+            title={uiLanguage === 'ja' ? '自動検出（複数言語）' : 'Auto-detect (multi-language)'}
+            subtitle={
+              uiLanguage === 'ja'
+                ? '複数の言語を同時に検出して文字起こしします。言語を切り替えて話す場合に最適です。'
+                : 'Detects and transcribes several languages at once — best when you switch languages.'
+            }
           />
           <RadioCard
             selected={!autoDetect}
             onSelect={() => applyLanguage(lastSingle)}
-            title="Single language (better accuracy)"
-            subtitle="Best when you speak one language. Pick it below."
+            title={
+              uiLanguage === 'ja' ? '単一言語（精度を優先）' : 'Single language (better accuracy)'
+            }
+            subtitle={
+              uiLanguage === 'ja'
+                ? '一つの言語だけを話す場合に最適です。下から言語を選んでください。'
+                : 'Best when you speak one language. Pick it below.'
+            }
           >
             {!autoDetect && (
               <div className="mt-3 flex items-center gap-2 text-sm text-text-tertiary">
-                Language
+                {uiLanguage === 'ja' ? '言語' : 'Language'}
                 <select
                   value={language}
                   onChange={(e) => applyLanguage(e.target.value)}
@@ -89,7 +101,10 @@ export function TranscriptionTab(): React.JSX.Element {
                 >
                   {SINGLE_LANGUAGES.map((l) => (
                     <option key={l.code} value={l.code} className="bg-neutral-900">
-                      {l.label}
+                      {uiLanguage === 'ja'
+                        ? (new Intl.DisplayNames(['ja'], { type: 'language' }).of(l.code) ??
+                          l.label)
+                        : l.label}
                     </option>
                   ))}
                 </select>

@@ -4,6 +4,7 @@ import { SettingRow } from '../SettingRow'
 import { Toggle } from '../Toggle'
 import { Slider } from '../controls/Slider'
 import type { AssistantSettingsView } from '../../../../../shared/types'
+import { useI18n } from '../../../lib/i18n'
 
 // Frequency levels 0–5, mirroring Mac's stepped slider labels and the interval
 // table in main/assistants/core/notify.ts (LEVEL_INTERVALS_MS).
@@ -28,6 +29,7 @@ const FREQUENCY_CAPTIONS = [
  * setting is the whole action: the proactive coordinator re-syncs on any write.
  */
 export function NotificationsTab(): React.JSX.Element {
+  const { language } = useI18n()
   const [settings, setSettings] = useState<AssistantSettingsView | null>(null)
 
   useEffect(() => {
@@ -74,15 +76,32 @@ export function NotificationsTab(): React.JSX.Element {
         note={
           level === 0 ? (
             <span className="text-xs text-amber-400/90">
-              Proactive notifications are off. Raise the frequency to let Omi notify you.
+              {language === 'ja'
+                ? '先回り通知はオフです。Omiから通知を受け取るには頻度を上げてください。'
+                : 'Proactive notifications are off. Raise the frequency to let Omi notify you.'}
             </span>
           ) : undefined
         }
       >
         <div className="space-y-2">
           <div className="flex items-baseline justify-between text-sm">
-            <span className="font-medium text-text-primary">{FREQUENCY_LABELS[level]}</span>
-            <span className="text-text-tertiary">{FREQUENCY_CAPTIONS[level]}</span>
+            <span className="font-medium text-text-primary">
+              {language === 'ja'
+                ? ['オフ', '最小', '低', '標準', '高', '最大'][level]
+                : FREQUENCY_LABELS[level]}
+            </span>
+            <span className="text-text-tertiary">
+              {language === 'ja'
+                ? [
+                    '通知なし',
+                    '最大60分ごと',
+                    '最大30分ごと',
+                    '最大10分ごと',
+                    '最大3分ごと',
+                    '制限なし'
+                  ][level]
+                : FREQUENCY_CAPTIONS[level]}
+            </span>
           </div>
           <Slider
             value={level}
@@ -93,8 +112,8 @@ export function NotificationsTab(): React.JSX.Element {
             ticks={[0, 1, 2, 3, 4, 5]}
             ariaLabel="Notification frequency"
             disabled={!settings}
-            leftLabel={<span className="text-xs">Off</span>}
-            rightLabel={<span className="text-xs">Max</span>}
+            leftLabel={<span className="text-xs">{language === 'ja' ? 'オフ' : 'Off'}</span>}
+            rightLabel={<span className="text-xs">{language === 'ja' ? '最大' : 'Max'}</span>}
           />
         </div>
       </SettingRow>
@@ -107,7 +126,9 @@ export function NotificationsTab(): React.JSX.Element {
         keywords="focus notifications distraction refocus"
         note={
           <span className="text-xs text-text-tertiary">
-            Turning this off also pauses focus analysis entirely.
+            {language === 'ja'
+              ? 'オフにすると集中状態の分析も停止します。'
+              : 'Turning this off also pauses focus analysis entirely.'}
           </span>
         }
         control={

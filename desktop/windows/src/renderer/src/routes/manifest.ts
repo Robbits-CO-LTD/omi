@@ -15,6 +15,7 @@ import { Insights } from '../pages/Insights'
 import { LiveConversation } from '../pages/LiveConversation'
 import { KnowledgeGraph } from '../pages/KnowledgeGraph'
 import { CONVERSATIONS_PATH } from '../lib/conversations/conversationsPanelActivity'
+import type { TranslationKey } from '../lib/i18n'
 
 // Single source of truth for the app's page routing. Both MainViews (what renders
 // in the content area) and Sidebar (the nav rail) are driven off this array, so a
@@ -26,6 +27,7 @@ export type RouteKind = 'panel' | 'exclusive' | 'redirect'
 
 export interface RouteNav {
   label: string
+  labelKey: TranslationKey
   Icon: LucideIcon
   order: number
   // Extra pathnames that should light this nav item up (e.g. Tasks stays active
@@ -130,7 +132,7 @@ export const routeManifest: RouteEntry[] = [
     kind: 'panel',
     path: '/home',
     Component: HomePanel,
-    nav: { label: 'Home', Icon: House, order: 0 },
+    nav: { label: 'Home', labelKey: 'nav.home', Icon: House, order: 0 },
     shortcut: '1'
   },
   {
@@ -138,7 +140,12 @@ export const routeManifest: RouteEntry[] = [
     kind: 'panel',
     path: CONVERSATIONS_PATH,
     Component: ConversationsPanel,
-    nav: { label: 'Conversations', Icon: GanttChartSquare, order: 1 },
+    nav: {
+      label: 'Conversations',
+      labelKey: 'nav.conversations',
+      Icon: GanttChartSquare,
+      order: 1
+    },
     shortcut: '2',
     escapeToHome: true
   },
@@ -156,7 +163,13 @@ export const routeManifest: RouteEntry[] = [
     kind: 'panel',
     path: '/tasks',
     Component: TasksPanel,
-    nav: { label: 'Tasks', Icon: ListChecks, order: 2, activeFor: ['/goals'] },
+    nav: {
+      label: 'Tasks',
+      labelKey: 'nav.tasks',
+      Icon: ListChecks,
+      order: 2,
+      activeFor: ['/goals']
+    },
     shortcut: '4',
     escapeToHome: true
   },
@@ -166,7 +179,7 @@ export const routeManifest: RouteEntry[] = [
     kind: 'panel',
     path: '/apps',
     Component: AppsPanel,
-    nav: { label: 'Apps', Icon: LayoutGrid, order: 4 },
+    nav: { label: 'Apps', labelKey: 'nav.apps', Icon: LayoutGrid, order: 4 },
     shortcut: '6'
   },
   {
@@ -174,7 +187,7 @@ export const routeManifest: RouteEntry[] = [
     kind: 'panel',
     path: '/rewind',
     Component: RewindPanel,
-    nav: { label: 'Rewind', Icon: History, order: 3 },
+    nav: { label: 'Rewind', labelKey: 'nav.rewind', Icon: History, order: 3 },
     shortcut: '5',
     escapeToHome: true
   },
@@ -183,7 +196,7 @@ export const routeManifest: RouteEntry[] = [
     kind: 'panel',
     path: '/insights',
     Component: InsightsPanel,
-    nav: { label: 'Insights', Icon: Lightbulb, order: 5 },
+    nav: { label: 'Insights', labelKey: 'nav.insights', Icon: Lightbulb, order: 5 },
     escapeToHome: true
   }
 ]

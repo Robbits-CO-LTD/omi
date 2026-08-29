@@ -26,6 +26,7 @@ import type {
   TrialMetadata,
   OverageInfoResponse
 } from '../../../lib/omiApi.generated'
+import { useI18n } from '../../../lib/i18n'
 
 function apiError(e: unknown): string {
   return (
@@ -40,6 +41,7 @@ const REFRESH_LAGGING_MSG =
   'Payment completed, but plan refresh is still catching up. Please try reloading this page in a moment.'
 
 export function PlanUsageTab(): React.JSX.Element {
+  const { language, t } = useI18n()
   // Register the tab for cross-tab Settings search (billing content is card-based,
   // not SettingRows, so this one hidden entry surfaces the panel on a match).
   useSearchableRow(
@@ -182,7 +184,7 @@ export function PlanUsageTab(): React.JSX.Element {
         <div className="glass-subtle mb-4 px-4 py-3 text-sm text-white/60">{error}</div>
         <button onClick={onRefresh} disabled={refreshing} className="btn-ghost">
           <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Try again
+          {t('common.retry')}
         </button>
       </div>
     )
@@ -195,11 +197,13 @@ export function PlanUsageTab(): React.JSX.Element {
     return (
       <div>
         <div className="glass-subtle mb-4 px-4 py-3 text-sm text-white/60">
-          Couldn’t load your plan details.
+          {language === 'ja'
+            ? 'プラン情報を読み込めませんでした。'
+            : 'Couldn’t load your plan details.'}
         </div>
         <button onClick={onRefresh} disabled={refreshing} className="btn-ghost">
           <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Try again
+          {t('common.retry')}
         </button>
       </div>
     )
@@ -222,7 +226,7 @@ export function PlanUsageTab(): React.JSX.Element {
           icon={AlertTriangle}
           iconTone="amber"
           className="border border-amber-400/25"
-          title="Plan Retiring"
+          title={language === 'ja' ? '提供終了予定のプラン' : 'Plan Retiring'}
           subtitle={
             subscription.deprecation_message ??
             'Your Unlimited plan is being retired. Try the new Operator plan — same great features at $49/mo.'
@@ -230,7 +234,7 @@ export function PlanUsageTab(): React.JSX.Element {
           trailing={
             showCatalog ? (
               <button onClick={jumpToOperator} className="btn-ghost">
-                Try Operator
+                {language === 'ja' ? 'Operatorを試す' : 'Try Operator'}
               </button>
             ) : undefined
           }

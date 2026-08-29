@@ -38,6 +38,7 @@ import { AppCrashScreen } from './components/ui/AppCrashScreen'
 import { scrubEventPii } from '../../shared/sentryScrub'
 import { isSecondaryWindow } from './lib/windowRole'
 import { initFontScale } from './lib/fontScale'
+import { I18nProvider } from './lib/i18n'
 
 // Renderer-side crash reporting. Only initializes when a DSN is configured, so
 // dev builds (and any build without the env var) stay entirely offline. Emails
@@ -78,10 +79,12 @@ createRoot(document.getElementById('root')!).render(
         card there would be unreachable. `null` reproduces today's exact overlay
         behavior (a throw unmounts to transparent) while keeping the white-screen
         net where the C1 bug actually lives (the main window). */}
-    <ErrorBoundary label="app-root" fallback={IS_PRIMARY_WINDOW ? <AppCrashScreen /> : null}>
-      <App />
-    </ErrorBoundary>
-    <SandboxBadge />
+    <I18nProvider>
+      <ErrorBoundary label="app-root" fallback={IS_PRIMARY_WINDOW ? <AppCrashScreen /> : null}>
+        <App />
+      </ErrorBoundary>
+      <SandboxBadge />
+    </I18nProvider>
   </StrictMode>
 )
 

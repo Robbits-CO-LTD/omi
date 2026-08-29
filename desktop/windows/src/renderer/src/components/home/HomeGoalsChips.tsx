@@ -9,6 +9,7 @@ import { getCacheUid } from '../../lib/persistentCache'
 import { useThrottledWindowFocus } from '../../lib/focusRefetch'
 import type { GoalResponse as Goal } from '../../lib/omiApi.generated'
 import type { HubHomeWidgetsProps } from './hub/hubHomeWidgetsSlot'
+import { useI18n } from '../../lib/i18n'
 
 // The resting Hub's focused-goals chip row — the compact, single-line surface
 // ported from macOS `FocusedGoalsSection` (WhatMattersNowSection.swift): a row of
@@ -40,6 +41,7 @@ function activeGoals(list: Goal[] | null): Goal[] | null {
 }
 
 export function HomeGoalsChips({ onShowAll, onOpenGoal }: HubHomeWidgetsProps): React.JSX.Element {
+  const { language } = useI18n()
   // Seed from the per-uid cold-start snapshot before the initial state is read,
   // exactly as the Goals page does, so a fresh launch paints the last-known chips
   // instead of the skeleton. The revalidating fetch below still runs.
@@ -153,7 +155,7 @@ export function HomeGoalsChips({ onShowAll, onOpenGoal }: HubHomeWidgetsProps): 
           <span aria-hidden className="shrink-0 text-[12px] leading-none">
             {DEFAULT_GOAL_EMOJI}
           </span>
-          Set a goal
+          {language === 'ja' ? '目標を設定' : 'Set a goal'}
         </button>
       </div>
     )
@@ -197,7 +199,7 @@ export function HomeGoalsChips({ onShowAll, onOpenGoal }: HubHomeWidgetsProps): 
         onClick={showAll}
         className="focus-ring ml-auto shrink-0 rounded-full px-2 py-1 text-[11px] font-medium text-home-muted transition-colors duration-150 hover:text-home-ink"
       >
-        All goals
+        {language === 'ja' ? 'すべての目標' : 'All goals'}
       </button>
     </div>
   )

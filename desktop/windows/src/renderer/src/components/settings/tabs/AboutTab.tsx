@@ -29,6 +29,7 @@ import {
 import type { UpdateCheckResult } from '../../../../../shared/types'
 import { SettingRow } from '../SettingRow'
 import { Toggle } from '../Toggle'
+import { useI18n } from '../../../lib/i18n'
 
 type Link = { label: string; icon: typeof Globe } & ({ href: string } | { onClick: () => void })
 
@@ -55,6 +56,7 @@ function checkResultMessage(r: UpdateCheckResult): string {
 }
 
 export function AboutTab(): React.JSX.Element {
+  const { language } = useI18n()
   const [version, setVersion] = useState<string | null>(null)
   const [name, setName] = useState<string | null>(null)
   const [pending, setPending] = useState<string | null>(null)
@@ -122,8 +124,10 @@ export function AboutTab(): React.JSX.Element {
         title="Omi for Windows"
         subtitle={
           version
-            ? `Version ${version}${name && name.toLowerCase() !== 'omi' ? ` · ${name}` : ''}`
-            : 'Loading version…'
+            ? `${language === 'ja' ? 'バージョン' : 'Version'} ${version}${name && name.toLowerCase() !== 'omi' ? ` · ${name}` : ''}`
+            : language === 'ja'
+              ? 'バージョンを読み込み中…'
+              : 'Loading version…'
         }
         keywords="about version build app info omi"
       />
@@ -143,7 +147,16 @@ export function AboutTab(): React.JSX.Element {
             const inner = (
               <>
                 <Icon className="h-4 w-4 shrink-0 text-white/55" strokeWidth={1.75} />
-                <span className="flex-1 text-left">{l.label}</span>
+                <span className="flex-1 text-left">
+                  {language === 'ja'
+                    ? ({
+                        'Visit website': '公式サイトを見る',
+                        'Help center': 'ヘルプセンター',
+                        'Terms of service': '利用規約',
+                        'Release notes': '更新履歴'
+                      }[l.label] ?? l.label)
+                    : l.label}
+                </span>
                 {isExternal ? (
                   <ExternalLink className="h-4 w-4 shrink-0 text-white/35" strokeWidth={1.75} />
                 ) : (
@@ -177,7 +190,13 @@ export function AboutTab(): React.JSX.Element {
             disabled={checking}
             className="rounded-md border border-white/15 px-3 py-1.5 text-xs text-white transition-colors hover:bg-white/10 disabled:opacity-40"
           >
-            {checking ? 'Checking…' : 'Check for updates'}
+            {checking
+              ? language === 'ja'
+                ? '確認中…'
+                : 'Checking…'
+              : language === 'ja'
+                ? '更新を確認'
+                : 'Check for updates'}
           </button>
         }
       />
@@ -211,7 +230,7 @@ export function AboutTab(): React.JSX.Element {
               onClick={() => void restartToUpdate()}
               className="rounded-md bg-white px-3 py-1.5 text-xs font-medium text-black transition-opacity hover:opacity-90"
             >
-              Restart to update
+              {language === 'ja' ? '再起動して更新' : 'Restart to update'}
             </button>
           }
         />

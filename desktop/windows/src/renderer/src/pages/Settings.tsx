@@ -18,6 +18,7 @@ import { PlanUsageTab } from '../components/settings/tabs/PlanUsageTab'
 import { ShortcutsTab } from '../components/settings/tabs/ShortcutsTab'
 import { AboutTab } from '../components/settings/tabs/AboutTab'
 import { Memories } from './Memories'
+import { useI18n } from '../lib/i18n'
 
 // The Memories tab renders the full Memories page (its own layout, brain map and
 // management UI), so it isn't a simple searchable settings panel — it's handled
@@ -41,6 +42,7 @@ function SettingsInner(): React.JSX.Element {
   const { query, setQuery } = useSettingsSearch()
   const navigate = useNavigate()
   const { key } = useLocation()
+  const { t } = useI18n()
 
   // macOS semantics: this returns to the page you came FROM, not to Home — it reads
   // `previousIndexBeforeSettings` and only falls back to the dashboard when there is
@@ -94,11 +96,11 @@ function SettingsInner(): React.JSX.Element {
           <div className="mx-auto max-w-2xl">
             {/* All panels stay mounted (so search can see every row); each shows when
                 it's the active tab, or when a search matches one of its rows. */}
-            {SETTINGS_TABS.map(({ id, label }) => {
+            {SETTINGS_TABS.map(({ id, labelKey }) => {
               const Comp = TAB_COMPONENTS[id]
               if (!Comp) return null // memories has no panel — rendered full-page above
               return (
-                <SettingsTabPanel key={id} id={id} label={label} active={active === id}>
+                <SettingsTabPanel key={id} id={id} label={t(labelKey)} active={active === id}>
                   <Comp />
                 </SettingsTabPanel>
               )

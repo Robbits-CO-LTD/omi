@@ -15,6 +15,7 @@ import { SettingRow } from '../SettingRow'
 import { auth } from '../../../lib/firebase'
 import { dismissUsageLimit } from '../../../lib/usageLimit'
 import { fetchSubscription, fetchChatQuota } from '../../../lib/billing'
+import { useI18n } from '../../../lib/i18n'
 import {
   BYOK_PROVIDERS,
   BYOK_LLM_PROVIDERS,
@@ -65,6 +66,7 @@ const emptyKeys = (): Record<ByokProvider, string> => ({
 const COMMIT_DEBOUNCE_MS = 600
 
 export function DeveloperKeysSection(): React.JSX.Element {
+  const { language } = useI18n()
   const [keys, setKeys] = useState<Record<ByokProvider, string>>(emptyKeys)
   const [statuses, setStatuses] = useState<ByokValidationResults>({})
   const [checking, setChecking] = useState(false)
@@ -187,7 +189,7 @@ export function DeveloperKeysSection(): React.JSX.Element {
       <div className="mb-4 mt-2 flex items-center gap-2 border-t border-white/[0.06] pt-6">
         <KeyRound className="h-4 w-4 text-white/45" strokeWidth={1.9} />
         <h3 className="text-sm font-semibold uppercase tracking-wide text-text-tertiary">
-          Developer API Keys
+          {language === 'ja' ? '開発者APIキー' : 'Developer API Keys'}
         </h3>
       </div>
 
@@ -200,12 +202,22 @@ export function DeveloperKeysSection(): React.JSX.Element {
         )}
         <div className="min-w-0">
           <div className="text-[15px] font-semibold text-text-primary">
-            {hasActiveLLMByok ? 'Free plan active' : 'Use Omi free forever'}
+            {hasActiveLLMByok
+              ? language === 'ja'
+                ? '無料プランを利用中'
+                : 'Free plan active'
+              : language === 'ja'
+                ? '自分のAPIキーでOmiを無料利用'
+                : 'Use Omi free forever'}
           </div>
           <div className="mt-0.5 text-sm text-text-tertiary">
             {hasActiveLLMByok
-              ? "You're paying your own providers. Omi skips the subscription charge. Keys stay on this PC."
-              : 'Add an LLM key to switch to the free plan. OpenRouter is preferred when configured; Deepgram is optional and only powers transcription. Keys stay on this PC — we never store them on our servers.'}
+              ? language === 'ja'
+                ? '各サービスの料金を直接支払うため、Omiの購読料はかかりません。キーはこのPCに保存されます。'
+                : "You're paying your own providers. Omi skips the subscription charge. Keys stay on this PC."
+              : language === 'ja'
+                ? 'LLMキーを追加すると無料プランへ切り替わります。設定済みならOpenRouterを優先し、Deepgramは任意で文字起こしだけに使います。キーはこのPCに保存され、Omiのサーバーには保存しません。'
+                : 'Add an LLM key to switch to the free plan. OpenRouter is preferred when configured; Deepgram is optional and only powers transcription. Keys stay on this PC — we never store them on our servers.'}
           </div>
         </div>
       </div>
@@ -225,19 +237,33 @@ export function DeveloperKeysSection(): React.JSX.Element {
           <SettingRow
             key={id}
             title={title}
-            subtitle={subtitle}
+            subtitle={
+              language === 'ja'
+                ? ({
+                    openrouter: 'OpenRouterのモデルに使います。',
+                    openai: 'GPTの呼び出しに使います。',
+                    anthropic: 'チャット（Claude）に使います。',
+                    gemini: '記憶、タスク、インサイト、集中支援などの先回りAIに使います。',
+                    deepgram: 'リアルタイム文字起こしに使います。'
+                  }[id] ?? subtitle)
+                : subtitle
+            }
             keywords={`${id} ${displayName} api key byok developer bring your own key`}
             dot={dot}
             control={
               showChecking ? (
                 <span className="flex items-center gap-1.5 text-sm text-text-tertiary">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Checking…
+                  {language === 'ja' ? '確認中…' : 'Checking…'}
                 </span>
               ) : status?.ok ? (
-                <span className="text-sm font-semibold text-emerald-400">Valid</span>
+                <span className="text-sm font-semibold text-emerald-400">
+                  {language === 'ja' ? '有効' : 'Valid'}
+                </span>
               ) : status && !status.ok ? (
-                <span className="text-sm font-semibold text-amber-400">Invalid</span>
+                <span className="text-sm font-semibold text-amber-400">
+                  {language === 'ja' ? '無効' : 'Invalid'}
+                </span>
               ) : undefined
             }
           >
@@ -246,7 +272,9 @@ export function DeveloperKeysSection(): React.JSX.Element {
                 type={reveal[id] ? 'text' : 'password'}
                 value={keys[id]}
                 onChange={(e) => onFieldChange(id, e.target.value)}
-                placeholder="Leave blank for default"
+                placeholder={
+                  language === 'ja' ? '既定値を使う場合は空欄' : 'Leave blank for default'
+                }
                 className="glass-subtle w-full rounded-lg px-4 py-3 pr-11 font-mono text-sm text-text-secondary focus:outline-none"
                 spellCheck={false}
                 autoComplete="off"
@@ -273,7 +301,7 @@ export function DeveloperKeysSection(): React.JSX.Element {
             onClick={() => void clearAll()}
             className="text-sm font-medium text-red-400 hover:text-red-300"
           >
-            Clear All Custom Keys
+            {language === 'ja' ? 'カスタムキーをすべて削除' : 'Clear All Custom Keys'}
           </button>
         </div>
       )}

@@ -3,6 +3,7 @@ import type { ConversationFolder } from '../../../../shared/types'
 import type { FolderFilter } from '../../lib/conversations/filtering'
 import { DEFAULT_FOLDER_COLOR } from './folderColors'
 import { macPurple } from '../../lib/macPalette'
+import { useI18n } from '../../lib/i18n'
 
 // Horizontal folder strip: fixed "All" + "Starred" chips, one chip per folder,
 // then a "+" create button. Selected chip = textPrimary@0.12 fill + @0.3 stroke
@@ -45,20 +46,25 @@ export function FolderTabsStrip({
   onCreate: () => void
   onEditFolder: (folder: ConversationFolder) => void
 }): React.JSX.Element {
+  const { language } = useI18n()
+  const systemFolderName = (name: string): string => {
+    if (language !== 'ja') return name
+    return { Work: '仕事', Personal: '個人', Social: '交流' }[name] ?? name
+  }
   return (
     <div className="no-scrollbar flex items-center gap-2 overflow-x-auto px-6 pb-3 lg:px-10">
       <button
         onClick={() => onSelect({ kind: 'all' })}
         className={chipClass(selected.kind === 'all')}
       >
-        All
+        {language === 'ja' ? 'すべて' : 'All'}
       </button>
       <button
         onClick={() => onSelect({ kind: 'starred' })}
         className={chipClass(selected.kind === 'starred')}
       >
         <Star className="h-3.5 w-3.5" />
-        Starred
+        {language === 'ja' ? 'お気に入り' : 'Starred'}
       </button>
 
       {folders.map((f) => {
@@ -73,7 +79,9 @@ export function FolderTabsStrip({
                 className="h-2 w-2 shrink-0 rounded-full"
                 style={{ backgroundColor: f.color ?? DEFAULT_FOLDER_COLOR }}
               />
-              <span className="max-w-[160px] truncate">{f.name}</span>
+              <span className="max-w-[160px] truncate">
+                {f.isSystem ? systemFolderName(f.name) : f.name}
+              </span>
               <CountBadge n={f.conversationCount} />
             </button>
             {/* Hover-revealed edit affordance (system folders aren't editable). */}
@@ -83,7 +91,7 @@ export function FolderTabsStrip({
                   e.stopPropagation()
                   onEditFolder(f)
                 }}
-                aria-label={`Edit ${f.name}`}
+                aria-label={language === 'ja' ? `${f.name}を編集` : `Edit ${f.name}`}
                 className="absolute right-1.5 top-1/2 hidden -translate-y-1/2 rounded-md p-1 text-white/50 hover:text-white group-hover:block"
               >
                 <Pencil className="h-3 w-3" />
@@ -95,7 +103,7 @@ export function FolderTabsStrip({
 
       <button
         onClick={onCreate}
-        aria-label="New folder"
+        aria-label={language === 'ja' ? '新しいフォルダー' : 'New folder'}
         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 text-white/60 transition-colors hover:border-white/20 hover:bg-white/5 hover:text-white"
       >
         <Plus className="h-4 w-4" />

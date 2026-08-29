@@ -11,9 +11,11 @@
 import { useEffect, useState } from 'react'
 import { UserRound } from 'lucide-react'
 import { SettingRow } from '../SettingRow'
+import { useI18n } from '../../../lib/i18n'
 import type { AiUserProfileRecord } from '../../../../../shared/types'
 
 export function AiProfileCard(): React.JSX.Element {
+  const { language } = useI18n()
   const [record, setRecord] = useState<AiUserProfileRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
@@ -109,7 +111,13 @@ export function AiProfileCard(): React.JSX.Element {
               disabled={generating}
               className="btn-primary px-4 py-2 disabled:opacity-40"
             >
-              {generating ? 'Generating…' : 'Generate Now'}
+              {generating
+                ? language === 'ja'
+                  ? '作成中…'
+                  : 'Generating…'
+                : language === 'ja'
+                  ? '今すぐ作成'
+                  : 'Generate Now'}
             </button>
           </div>
         ) : editing ? (
@@ -127,7 +135,13 @@ export function AiProfileCard(): React.JSX.Element {
                 disabled={saving}
                 className="btn-primary px-4 py-2 disabled:opacity-40"
               >
-                {saving ? 'Saving…' : 'Save'}
+                {saving
+                  ? language === 'ja'
+                    ? '保存中…'
+                    : 'Saving…'
+                  : language === 'ja'
+                    ? '保存'
+                    : 'Save'}
               </button>
               <button
                 onClick={() => {
@@ -137,7 +151,7 @@ export function AiProfileCard(): React.JSX.Element {
                 disabled={saving}
                 className="btn-ghost disabled:opacity-40"
               >
-                Cancel
+                {language === 'ja' ? 'キャンセル' : 'Cancel'}
               </button>
             </div>
           </div>
@@ -148,9 +162,12 @@ export function AiProfileCard(): React.JSX.Element {
               {record.profileText}
             </div>
             <p className="text-xs text-text-tertiary">
-              Last updated: {new Date(record.generatedAt).toLocaleDateString()} · Data sources:{' '}
-              {record.dataSourcesUsed.length}{' '}
-              {record.dataSourcesUsed.length === 1 ? 'item' : 'items'}
+              {language === 'ja' ? '最終更新' : 'Last updated'}:{' '}
+              {new Date(record.generatedAt).toLocaleDateString()} ·{' '}
+              {language === 'ja' ? 'データ元' : 'Data sources'}: {record.dataSourcesUsed.length}
+              {language === 'ja'
+                ? '件'
+                : ` ${record.dataSourcesUsed.length === 1 ? 'item' : 'items'}`}
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -158,14 +175,20 @@ export function AiProfileCard(): React.JSX.Element {
                 disabled={generating}
                 className="btn-ghost disabled:opacity-40"
               >
-                {generating ? 'Regenerating…' : 'Regenerate'}
+                {generating
+                  ? language === 'ja'
+                    ? '再作成中…'
+                    : 'Regenerating…'
+                  : language === 'ja'
+                    ? '再作成'
+                    : 'Regenerate'}
               </button>
               <button
                 onClick={startEdit}
                 disabled={generating}
                 className="btn-ghost disabled:opacity-40"
               >
-                Edit
+                {language === 'ja' ? '編集' : 'Edit'}
               </button>
               {confirmingDelete ? (
                 <>
@@ -173,13 +196,13 @@ export function AiProfileCard(): React.JSX.Element {
                     onClick={remove}
                     className="text-sm font-medium text-red-400 hover:text-red-300"
                   >
-                    Confirm delete
+                    {language === 'ja' ? '削除を確定' : 'Confirm delete'}
                   </button>
                   <button
                     onClick={() => setConfirmingDelete(false)}
                     className="btn-ghost disabled:opacity-40"
                   >
-                    Cancel
+                    {language === 'ja' ? 'キャンセル' : 'Cancel'}
                   </button>
                 </>
               ) : (
@@ -188,7 +211,7 @@ export function AiProfileCard(): React.JSX.Element {
                   disabled={generating}
                   className="text-sm font-medium text-red-400 hover:text-red-300 disabled:opacity-40"
                 >
-                  Delete
+                  {language === 'ja' ? '削除' : 'Delete'}
                 </button>
               )}
             </div>

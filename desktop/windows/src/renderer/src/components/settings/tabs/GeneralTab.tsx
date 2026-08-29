@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   LayoutDashboard,
+  Languages,
   MessageSquarePlus,
   MessagesSquare,
   Mic,
@@ -15,12 +16,15 @@ import { getPreferences, onPreferencesChange, setPreferences } from '../../../li
 import { SettingRow } from '../SettingRow'
 import { Toggle } from '../Toggle'
 import { FontSizeCard } from '../FontSizeCard'
+import { useI18n } from '../../../lib/i18n'
 
 export function GeneralTab(): React.JSX.Element {
   const [chatHistoryMode, setChatHistoryMode] = useState(getPreferences().chatHistoryMode)
+  const { t } = useI18n()
 
   return (
     <>
+      <UiLanguageRow />
       {/* macOS General leads with the capture-status cards (spec §3.1). */}
       <ScreenCaptureRow />
       <AudioRecordingRow />
@@ -28,8 +32,8 @@ export function GeneralTab(): React.JSX.Element {
       <ScreenAnalysisRow />
       <SettingRow
         icon={MessagesSquare}
-        title="Chat history"
-        subtitle="By default, one ongoing conversation (shared with the floating bar) that persists across launches — scroll up in chat to load older messages. Or start a fresh conversation each launch."
+        title={t('settings.general.chatHistory')}
+        subtitle={t('settings.general.chatHistorySubtitle')}
         keywords="conversation thread floating bar history infinite"
         control={
           <select
@@ -42,10 +46,10 @@ export function GeneralTab(): React.JSX.Element {
             className="rounded-md bg-white/10 px-2 py-1.5 text-sm text-white focus:outline-none"
           >
             <option value="infinite" className="bg-neutral-900">
-              One ongoing conversation (default)
+              {t('settings.general.chatHistoryInfinite')}
             </option>
             <option value="per-launch" className="bg-neutral-900">
-              New conversation each launch
+              {t('settings.general.chatHistoryPerLaunch')}
             </option>
           </select>
         }
@@ -59,7 +63,36 @@ export function GeneralTab(): React.JSX.Element {
   )
 }
 
+function UiLanguageRow(): React.JSX.Element {
+  const { language, setLanguage, t } = useI18n()
+
+  return (
+    <SettingRow
+      icon={Languages}
+      title={t('settings.uiLanguage.title')}
+      subtitle={t('settings.uiLanguage.subtitle')}
+      keywords="interface language English Japanese UI 日本語 英語 表示言語"
+      control={
+        <select
+          value={language}
+          onChange={(event) => setLanguage(event.target.value as 'en' | 'ja')}
+          aria-label={t('settings.uiLanguage.title')}
+          className="rounded-md bg-white/10 px-2 py-1.5 text-sm text-white focus:outline-none"
+        >
+          <option value="en" className="bg-neutral-900">
+            {t('settings.uiLanguage.english')}
+          </option>
+          <option value="ja" className="bg-neutral-900">
+            {t('settings.uiLanguage.japanese')}
+          </option>
+        </select>
+      }
+    />
+  )
+}
+
 function ActionAutomationRow(): React.JSX.Element {
+  const { t } = useI18n()
   const automationAvailable = window.omi.automationEnabled
   const [autoConsent, setAutoConsent] = useState<boolean>(!!getPreferences().automationConsentedAt)
   const toggleAutomation = (on: boolean): void => {
@@ -71,13 +104,13 @@ function ActionAutomationRow(): React.JSX.Element {
     <SettingRow
       icon={Zap}
       dot={automationAvailable && autoConsent ? 'on' : 'off'}
-      title="Let Omi take actions"
+      title={t('settings.general.automation')}
       subtitle={
         !automationAvailable
-          ? 'Disabled in this build.'
+          ? t('settings.general.automationDisabled')
           : autoConsent
-            ? 'Omi can click and type in your apps when you ask.'
-            : 'Turn on to let Omi act in your apps when you ask.'
+            ? t('settings.general.automationOn')
+            : t('settings.general.automationOff')
       }
       keywords="automation actions desktop control agent take action flaui approve"
       control={
@@ -85,7 +118,7 @@ function ActionAutomationRow(): React.JSX.Element {
           on={automationAvailable && autoConsent}
           onChange={toggleAutomation}
           disabled={!automationAvailable}
-          label="Let Omi take actions"
+          label={t('settings.general.automation')}
         />
       }
     />
@@ -97,6 +130,7 @@ function ActionAutomationRow(): React.JSX.Element {
 // We subscribe to the `rewind:settings` broadcast so flipping the switch in the
 // Sidebar (or another window) live-updates this card without a refetch.
 function ScreenCaptureRow(): React.JSX.Element {
+  const { t } = useI18n()
   const [rewind, setRewind] = useState<RewindSettings | null>(null)
 
   useEffect(() => {
@@ -116,11 +150,16 @@ function ScreenCaptureRow(): React.JSX.Element {
     <SettingRow
       icon={Monitor}
       dot={on ? 'on' : 'off'}
-      title="Screen Capture"
-      subtitle={on ? 'Capturing your screen for Rewind' : 'Screen capture is paused'}
+      title={t('settings.general.screenCapture')}
+      subtitle={on ? t('settings.general.screenCaptureOn') : t('settings.general.screenCaptureOff')}
       keywords="screen capture rewind record monitor recording"
       control={
-        <Toggle on={on} onChange={change} disabled={rewind === null} label="Screen Capture" />
+        <Toggle
+          on={on}
+          onChange={change}
+          disabled={rewind === null}
+          label={t('settings.general.screenCapture')}
+        />
       }
     />
   )
@@ -130,6 +169,7 @@ function ScreenCaptureRow(): React.JSX.Element {
 // preference — the same state the Sidebar's "Microphone" toggle drives — and live-syncs
 // through the preferences listener when flipped elsewhere.
 function AudioRecordingRow(): React.JSX.Element {
+  const { t } = useI18n()
   const [on, setOn] = useState<boolean>(() => !!getPreferences().continuousRecording)
 
   useEffect(() => onPreferencesChange((p) => setOn(!!p.continuousRecording)), [])
@@ -143,10 +183,12 @@ function AudioRecordingRow(): React.JSX.Element {
     <SettingRow
       icon={Mic}
       dot={on ? 'on' : 'off'}
-      title="Audio Recording"
-      subtitle={on ? 'Recording and transcribing audio' : 'Audio recording is paused'}
+      title={t('settings.general.audioRecording')}
+      subtitle={
+        on ? t('settings.general.audioRecordingOn') : t('settings.general.audioRecordingOff')
+      }
       keywords="audio recording microphone transcribe listening voice"
-      control={<Toggle on={on} onChange={change} label="Audio Recording" />}
+      control={<Toggle on={on} onChange={change} label={t('settings.general.audioRecording')} />}
     />
   )
 }
@@ -159,6 +201,7 @@ function AudioRecordingRow(): React.JSX.Element {
 // scoped assistant bridge the tray and the Notifications tab use, and subscribes to
 // the broadcast so it and the tray checkbox can never disagree.
 export function ScreenAnalysisRow(): React.JSX.Element {
+  const { t } = useI18n()
   const [on, setOn] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -175,11 +218,16 @@ export function ScreenAnalysisRow(): React.JSX.Element {
     <SettingRow
       icon={ScanEye}
       dot={on ? 'on' : 'off'}
-      title="Screen Analysis"
-      subtitle="Master switch for Omi's proactive screen features — Focus, memory and task extraction, and insights. When off, Omi never analyzes your screen. Separate from Screen Capture above, which only records your local Rewind timeline."
+      title={t('settings.general.screenAnalysis')}
+      subtitle={t('settings.general.screenAnalysisSubtitle')}
       keywords="screen analysis proactive focus memory task insight vision master consent"
       control={
-        <Toggle on={!!on} onChange={change} disabled={on === null} label="Screen Analysis" />
+        <Toggle
+          on={!!on}
+          onChange={change}
+          disabled={on === null}
+          label={t('settings.general.screenAnalysis')}
+        />
       }
     />
   )
@@ -191,6 +239,7 @@ export function ScreenAnalysisRow(): React.JSX.Element {
 // (a dark flag), so flipping this on under the default legacy engine has no
 // visible effect yet — matching Mac, where multi-chat is kernel-backed.
 function MultiChatRow(): React.JSX.Element {
+  const { t } = useI18n()
   const [on, setOn] = useState(() => getPreferences().multiChatEnabled === true)
 
   useEffect(() => onPreferencesChange((p) => setOn(p.multiChatEnabled === true)), [])
@@ -203,10 +252,10 @@ function MultiChatRow(): React.JSX.Element {
   return (
     <SettingRow
       icon={MessageSquarePlus}
-      title="Multiple Chat Sessions"
-      subtitle={on ? 'Create separate chat threads' : 'Single chat synced with the mobile app'}
+      title={t('settings.general.multiChat')}
+      subtitle={on ? t('settings.general.multiChatOn') : t('settings.general.multiChatOff')}
       keywords="multi chat sessions threads history switcher conversations separate"
-      control={<Toggle on={on} onChange={change} label="Multiple Chat Sessions" />}
+      control={<Toggle on={on} onChange={change} label={t('settings.general.multiChat')} />}
     />
   )
 }
@@ -214,6 +263,7 @@ function MultiChatRow(): React.JSX.Element {
 // Escape hatch back to the original Home screen. The Home page subscribes to this
 // preference, so the switch takes effect immediately — no restart.
 function LegacyHomeRow(): React.JSX.Element {
+  const { t } = useI18n()
   const [legacy, setLegacy] = useState(!!getPreferences().useLegacyHomeDesign)
 
   const change = (next: boolean): void => {
@@ -225,11 +275,11 @@ function LegacyHomeRow(): React.JSX.Element {
     <SettingRow
       icon={LayoutDashboard}
       dot={legacy ? 'off' : 'on'}
-      title="New Home screen"
-      subtitle="The redesigned Home — one stage with your stats, an ask bar, and suggestions. Turn this off to go back to the previous Home."
+      title={t('settings.general.newHome')}
+      subtitle={t('settings.general.newHomeSubtitle')}
       keywords="hub home dashboard layout redesign legacy old classic"
       control={
-        <Toggle on={!legacy} onChange={(on) => change(!on)} label="Use the new Home screen" />
+        <Toggle on={!legacy} onChange={(on) => change(!on)} label={t('settings.general.newHome')} />
       }
     />
   )
@@ -238,6 +288,7 @@ function LegacyHomeRow(): React.JSX.Element {
 // live in the same settings object (userData/app-settings.json → meeting.perApp,
 // keyed by pattern id) — editable as JSON; no dedicated UI yet.
 function MeetingDetectionRow(): React.JSX.Element {
+  const { t } = useI18n()
   const [mode, setMode] = useState<MeetingMode | null>(null)
 
   useEffect(() => {
@@ -253,8 +304,8 @@ function MeetingDetectionRow(): React.JSX.Element {
     <SettingRow
       icon={Presentation}
       dot={mode === 'off' ? 'off' : 'on'}
-      title="Meeting detection"
-      subtitle="When a meeting app is holding the microphone (Zoom, Teams, Meet, and more), Omi can capture and transcribe it — always with a visible notice, never silently."
+      title={t('settings.general.meetingDetection')}
+      subtitle={t('settings.general.meetingSubtitle')}
       keywords="meeting zoom teams meet webex discord detect auto capture record"
       control={
         <select
@@ -264,13 +315,13 @@ function MeetingDetectionRow(): React.JSX.Element {
           className="rounded-md bg-white/10 px-2 py-1.5 text-sm text-white focus:outline-none"
         >
           <option value="ask" className="bg-neutral-900">
-            Ask before capturing (default)
+            {t('settings.general.meetingAsk')}
           </option>
           <option value="auto" className="bg-neutral-900">
-            Capture automatically
+            {t('settings.general.meetingAuto')}
           </option>
           <option value="off" className="bg-neutral-900">
-            Off
+            {t('settings.general.meetingOff')}
           </option>
         </select>
       }
@@ -281,6 +332,7 @@ function MeetingDetectionRow(): React.JSX.Element {
 // Reflects and controls the OS "start Omi when I sign in" setting. Reads the real
 // state from main on mount; the toggle writes it through and updates optimistically.
 function LaunchAtLoginRow(): React.JSX.Element {
+  const { t } = useI18n()
   const [openAtLogin, setOpenAtLogin] = useState<boolean | null>(null)
   // The OS Run entry is only writable in packaged builds (see the main handler);
   // in unpackaged dev the toggle must not pretend it works.
@@ -302,11 +354,11 @@ function LaunchAtLoginRow(): React.JSX.Element {
     <SettingRow
       icon={Power}
       dot={openAtLogin ? 'on' : 'off'}
-      title="Launch at login"
+      title={t('settings.general.launchAtLogin')}
       subtitle={
         supported
-          ? 'Start Omi automatically when you sign in to Windows.'
-          : 'Start Omi automatically when you sign in to Windows. Available in installed builds only.'
+          ? t('settings.general.launchAtLoginSubtitle')
+          : t('settings.general.launchAtLoginUnsupported')
       }
       keywords="startup autostart launch login boot start"
       control={
@@ -314,7 +366,7 @@ function LaunchAtLoginRow(): React.JSX.Element {
           on={!!openAtLogin}
           onChange={change}
           disabled={openAtLogin === null || !supported}
-          label="Launch at login"
+          label={t('settings.general.launchAtLogin')}
         />
       }
     />

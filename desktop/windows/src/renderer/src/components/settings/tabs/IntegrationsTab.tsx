@@ -8,10 +8,12 @@ import { useGoogleConnection } from '../../../hooks/useGoogleConnection'
 import { GMAIL_SESSION_ENABLED } from '../../../lib/gmailSessionFeatureFlag'
 import { auth } from '../../../lib/firebase'
 import { SettingRow } from '../SettingRow'
+import { useI18n } from '../../../lib/i18n'
 import type { GmailSessionStatus } from '../../../../../shared/types'
 
 export function IntegrationsTab(): React.JSX.Element {
   const { memories, refresh } = useMemories()
+  const { language } = useI18n()
 
   // --- Sticky Notes ---
   const [stickyReading, setStickyReading] = useState(false)
@@ -153,7 +155,13 @@ export function IntegrationsTab(): React.JSX.Element {
               disabled={stickyReading || stickyImporting}
               className="btn-ghost disabled:opacity-40"
             >
-              {stickyReading ? 'Reading…' : 'Read notes'}
+              {stickyReading
+                ? language === 'ja'
+                  ? '読み取り中…'
+                  : 'Reading…'
+                : language === 'ja'
+                  ? 'ノートを読み取る'
+                  : 'Read notes'}
             </button>
             {stickyMemories && stickyMemories.length > 0 && (
               <button
@@ -162,8 +170,12 @@ export function IntegrationsTab(): React.JSX.Element {
                 className="btn-primary px-4 py-2 disabled:opacity-40"
               >
                 {stickyImporting
-                  ? 'Importing…'
-                  : `Import ${stickyMemories.length} memor${stickyMemories.length === 1 ? 'y' : 'ies'}`}
+                  ? language === 'ja'
+                    ? 'インポート中…'
+                    : 'Importing…'
+                  : language === 'ja'
+                    ? `${stickyMemories.length}件のメモリーをインポート`
+                    : `Import ${stickyMemories.length} memor${stickyMemories.length === 1 ? 'y' : 'ies'}`}
               </button>
             )}
           </div>
@@ -208,14 +220,20 @@ export function IntegrationsTab(): React.JSX.Element {
                   disabled={googleSyncing}
                   className="btn-primary px-4 py-2 disabled:opacity-40"
                 >
-                  {googleSyncing ? 'Syncing…' : 'Sync now'}
+                  {googleSyncing
+                    ? language === 'ja'
+                      ? '同期中…'
+                      : 'Syncing…'
+                    : language === 'ja'
+                      ? '今すぐ同期'
+                      : 'Sync now'}
                 </button>
                 <button
                   onClick={disconnectGoogle}
                   disabled={googleBusy}
                   className="btn-ghost disabled:opacity-40"
                 >
-                  Disconnect
+                  {language === 'ja' ? '接続解除' : 'Disconnect'}
                 </button>
               </div>
             ) : (
@@ -224,7 +242,13 @@ export function IntegrationsTab(): React.JSX.Element {
                 disabled={googleBusy}
                 className="btn-ghost disabled:opacity-40"
               >
-                {googleBusy ? 'Connecting…' : 'Connect'}
+                {googleBusy
+                  ? language === 'ja'
+                    ? '接続中…'
+                    : 'Connecting…'
+                  : language === 'ja'
+                    ? '接続'
+                    : 'Connect'}
               </button>
             )
           }
@@ -239,8 +263,13 @@ export function IntegrationsTab(): React.JSX.Element {
           subtitle={
             gmailStatus.connected
               ? 'Connected — reads recent mail through your signed-in Google session. No OAuth scopes; sign-in stays inside Omi.'
-              : gmailStatus.message ||
-                'Sign into Google once inside Omi, then read recent mail without restricted-scope OAuth.'
+              : language === 'ja'
+                ? gmailStatus.message === 'Not connected. Click Connect to sign into Gmail.'
+                  ? '未接続です。「接続」を押してGmailへログインしてください。'
+                  : gmailStatus.message ||
+                    'Omi内で一度Googleへログインすると、制限付きOAuthを使わずに最近のメールを読み取れます。'
+                : gmailStatus.message ||
+                  'Sign into Google once inside Omi, then read recent mail without restricted-scope OAuth.'
           }
           keywords="gmail session email inbox connect integration"
           control={
@@ -251,14 +280,20 @@ export function IntegrationsTab(): React.JSX.Element {
                   disabled={gmailFetching}
                   className="btn-primary px-4 py-2 disabled:opacity-40"
                 >
-                  {gmailFetching ? 'Reading…' : 'Fetch recent'}
+                  {gmailFetching
+                    ? language === 'ja'
+                      ? '読み取り中…'
+                      : 'Reading…'
+                    : language === 'ja'
+                      ? '最近のメールを取得'
+                      : 'Fetch recent'}
                 </button>
                 <button
                   onClick={disconnectGmail}
                   disabled={gmailBusy}
                   className="btn-ghost disabled:opacity-40"
                 >
-                  Disconnect
+                  {language === 'ja' ? '接続解除' : 'Disconnect'}
                 </button>
               </div>
             ) : (
@@ -267,7 +302,13 @@ export function IntegrationsTab(): React.JSX.Element {
                 disabled={gmailBusy}
                 className="btn-ghost disabled:opacity-40"
               >
-                {gmailBusy ? 'Connecting…' : 'Connect'}
+                {gmailBusy
+                  ? language === 'ja'
+                    ? '接続中…'
+                    : 'Connecting…'
+                  : language === 'ja'
+                    ? '接続'
+                    : 'Connect'}
               </button>
             )
           }

@@ -12,6 +12,8 @@ import {
   planAccent
 } from '../../../lib/billing'
 import type { Subscription, SubscriptionPlan } from '../../../lib/omiApi.generated'
+import { useI18n } from '../../../lib/i18n'
+import { localizeSettingsText } from '../../../lib/settingsText'
 
 /**
  * Plan catalog grid (AccountBilling): pick one plan to reveal its billing
@@ -28,11 +30,17 @@ export function PlanGrid(props: {
   activePriceId: string | null
   onBuy: (priceId: string, promotionCode?: string) => void
 }): React.JSX.Element {
+  const { language } = useI18n()
   return (
     <section>
-      <h2 className="text-[15px] font-semibold text-text-primary">Choose a plan</h2>
+      <h2 className="text-[15px] font-semibold text-text-primary">
+        {localizeSettingsText(language, 'Choose a plan')}
+      </h2>
       <p className="mt-1 text-sm text-text-tertiary">
-        Pick one plan first. Billing options appear only after the card is selected.
+        {localizeSettingsText(
+          language,
+          'Pick one plan first. Billing options appear only after the card is selected.'
+        )}
       </p>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {props.plans.map((plan) => (
@@ -59,6 +67,7 @@ function PlanCard(props: {
   activePriceId: string | null
   onBuy: (priceId: string, promotionCode?: string) => void
 }): React.JSX.Element {
+  const { language } = useI18n()
   const { plan, sub, selected, onSelect, activePriceId, onBuy } = props
   const [promo, setPromo] = useState('')
   const [promoOpen, setPromoOpen] = useState(false)
@@ -85,29 +94,37 @@ function PlanCard(props: {
         className="flex flex-col gap-3 text-left disabled:cursor-not-allowed"
       >
         <div className="text-[11px] font-semibold uppercase tracking-wide text-white/45">
-          {planEyebrow(plan)}
+          {localizeSettingsText(language, planEyebrow(plan))}
         </div>
         <div className="flex items-baseline justify-between gap-2">
           <span className="text-lg font-semibold text-text-primary">{plan.title}</span>
           <span className="shrink-0 text-right text-xs text-white/45">
-            {planStartingPrice(plan)}
-            <span className="ml-1 text-white/30">starting</span>
+            {language === 'ja'
+              ? planStartingPrice(plan).replace('/month', '／月')
+              : planStartingPrice(plan)}
+            <span className="ml-1 text-white/30">{language === 'ja' ? 'から' : 'starting'}</span>
           </span>
         </div>
-        <p className="text-sm text-text-tertiary">{planSubtitle(plan)}</p>
-        <p className="text-xs leading-relaxed text-white/45">{planDescription(plan)}</p>
+        <p className="text-sm text-text-tertiary">
+          {localizeSettingsText(language, planSubtitle(plan))}
+        </p>
+        <p className="text-xs leading-relaxed text-white/45">
+          {localizeSettingsText(language, planDescription(plan))}
+        </p>
         <ul className="space-y-1.5">
           {planFeatures(plan).map((f, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-white/75">
               <Check className={cn('mt-0.5 h-3.5 w-3.5 shrink-0', checkColor)} />
-              <span>{f}</span>
+              <span>{localizeSettingsText(language, f)}</span>
             </li>
           ))}
         </ul>
       </button>
 
       {!purchasable ? (
-        <p className="mt-auto text-xs text-white/40">Included with your current plan.</p>
+        <p className="mt-auto text-xs text-white/40">
+          {localizeSettingsText(language, 'Included with your current plan.')}
+        </p>
       ) : selected ? (
         <div className="mt-auto flex flex-col gap-2 border-t border-white/[0.06] pt-3">
           <button
@@ -116,7 +133,7 @@ function PlanCard(props: {
             className="flex items-center gap-1.5 text-xs text-white/55 hover:text-white/80"
           >
             <Tag className="h-3.5 w-3.5" />
-            Promo code
+            {localizeSettingsText(language, 'Promo code')}
             <ChevronDown
               className={cn('h-3.5 w-3.5 transition-transform', promoOpen && 'rotate-180')}
             />
@@ -125,11 +142,13 @@ function PlanCard(props: {
             <input
               value={promo}
               onChange={(e) => setPromo(e.target.value)}
-              placeholder="Enter promo code"
+              placeholder={localizeSettingsText(language, 'Enter promo code')}
               className="input-field py-2 text-sm"
             />
           ) : null}
-          <div className="mt-1 text-xs font-medium text-white/45">Choose billing</div>
+          <div className="mt-1 text-xs font-medium text-white/45">
+            {localizeSettingsText(language, 'Choose billing')}
+          </div>
           {sortedPrices(plan).map((price) => {
             const busy = activePriceId === price.id
             return (
@@ -154,7 +173,7 @@ function PlanCard(props: {
           onClick={() => onSelect(plan.id)}
           className="btn-ghost mt-auto w-full"
         >
-          Select {plan.title}
+          {language === 'ja' ? `${plan.title}を選択` : `Select ${plan.title}`}
         </button>
       )}
     </div>

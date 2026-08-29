@@ -37,6 +37,7 @@ import { AppDetailSheet } from '../components/apps/AppDetailSheet'
 import { auth } from '../lib/firebase'
 import { getE2EUser } from '../lib/dev/e2eAuth'
 import { useThrottledWindowFocus } from '../lib/focusRefetch'
+import { useI18n } from '../lib/i18n'
 
 // Cap rendered search results so a broad query (e.g. "a") can't mount the whole
 // catalog at once. Users refine rather than scroll hundreds of cards.
@@ -97,6 +98,7 @@ const AppCard = memo(function AppCard({
   onToggle: (a: AppCatalogItem) => void
   onOpen: (a: AppCatalogItem) => void
 }): React.JSX.Element {
+  const { t } = useI18n()
   return (
     <div
       role="button"
@@ -173,7 +175,7 @@ const AppCard = memo(function AppCard({
           ) : (
             <Plus className="h-3 w-3" />
           )}
-          {isSettingUp ? 'Setting up…' : isOn ? 'Installed' : 'Install'}
+          {isSettingUp ? t('apps.settingUp') : isOn ? t('common.installed') : t('common.install')}
         </button>
       </div>
     </div>
@@ -215,6 +217,7 @@ function AppGrid({
 }
 
 export function Apps(): React.JSX.Element {
+  const { language, t } = useI18n()
   // Cold-start snapshot: read once (before initial state) so the grid paints the
   // last-known catalog immediately on app restart instead of a spinner. The
   // revalidating load() below still runs and overwrites with fresh data.
@@ -637,8 +640,13 @@ export function Apps(): React.JSX.Element {
     <div className="flex h-full flex-col">
       <PageHeader
         title="Apps"
+        titleKey="pages.apps"
         subtitle={
-          loading ? 'Loading…' : `${allApps.length} available · ${installedApps.length} installed`
+          loading
+            ? t('common.loading')
+            : language === 'ja'
+              ? `利用可能 ${allApps.length}件・インストール済み ${installedApps.length}件`
+              : `${allApps.length} available · ${installedApps.length} installed`
         }
         actions={
           <div className="flex items-center gap-2">
@@ -651,7 +659,7 @@ export function Apps(): React.JSX.Element {
                     : 'text-white/55 hover:bg-white/5 hover:text-white/80'
                 }`}
               >
-                Marketplace
+                {t('apps.marketplace')}
               </button>
               <button
                 onClick={() => setTab('installed')}
@@ -661,14 +669,14 @@ export function Apps(): React.JSX.Element {
                     : 'text-white/55 hover:bg-white/5 hover:text-white/80'
                 }`}
               >
-                Installed
+                {t('common.installed')}
               </button>
             </div>
             <button
               onClick={onRefresh}
               disabled={refreshing || loading}
               className="btn-ghost px-3 py-2 disabled:opacity-50"
-              title="Refresh"
+              title={t('common.refresh')}
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -702,10 +710,8 @@ export function Apps(): React.JSX.Element {
               <AlertTriangle className="h-5 w-5 text-white/60" />
             </div>
             <div className="space-y-1">
-              <div className="font-display font-semibold text-white/90">Couldn’t load apps</div>
-              <p className="text-sm text-white/55">
-                Something went wrong reaching the marketplace. Check your connection and try again.
-              </p>
+              <div className="font-display font-semibold text-white/90">{t('apps.loadFailed')}</div>
+              <p className="text-sm text-white/55">{t('apps.loadFailedDescription')}</p>
             </div>
             <button
               onClick={onRefresh}
@@ -717,7 +723,7 @@ export function Apps(): React.JSX.Element {
               ) : (
                 <RefreshCw className="h-4 w-4" />
               )}
-              Retry
+              {t('common.retry')}
             </button>
           </div>
         )}
@@ -729,7 +735,7 @@ export function Apps(): React.JSX.Element {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search apps…"
+                  placeholder={t('apps.search')}
                   className="flex-1 border-0 bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-0"
                 />
                 {query && (
@@ -737,7 +743,7 @@ export function Apps(): React.JSX.Element {
                     onClick={() => setQuery('')}
                     className="text-xs text-white/45 hover:text-white"
                   >
-                    Clear
+                    {t('common.clear')}
                   </button>
                 )}
               </div>
@@ -750,10 +756,10 @@ export function Apps(): React.JSX.Element {
                       ? 'text-white'
                       : 'text-white/55 hover:text-white/80'
                   }`}
-                  title="Filter by category"
+                  title={t('apps.filterCategory')}
                 >
                   <SlidersHorizontal className="h-4 w-4" />
-                  <span className="hidden sm:inline">Filter</span>
+                  <span className="hidden sm:inline">{t('common.filter')}</span>
                   {selectedCats.size > 0 && (
                     <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-white/20 px-1.5 text-[11px] font-semibold text-white">
                       {selectedCats.size}
@@ -765,19 +771,21 @@ export function Apps(): React.JSX.Element {
                   <div className="surface-card absolute right-0 z-30 mt-2 max-h-80 w-60 overflow-y-auto p-2 shadow-xl">
                     <div className="flex items-center justify-between px-2 py-1.5">
                       <span className="text-xs font-semibold uppercase tracking-wide text-white/45">
-                        Categories
+                        {t('apps.categories')}
                       </span>
                       {selectedCats.size > 0 && (
                         <button
                           onClick={() => setSelectedCats(new Set())}
                           className="text-[11px] text-white/45 hover:text-white"
                         >
-                          Clear
+                          {t('common.clear')}
                         </button>
                       )}
                     </div>
                     {allCategories.length === 0 ? (
-                      <div className="px-2 py-2 text-xs text-white/45">No categories</div>
+                      <div className="px-2 py-2 text-xs text-white/45">
+                        {t('apps.noCategories')}
+                      </div>
                     ) : (
                       allCategories.map((cat) => {
                         const checked = selectedCats.has(cat)
@@ -824,13 +832,13 @@ export function Apps(): React.JSX.Element {
             {showSearchSpinner ? (
               <div className="flex items-center justify-center gap-2 py-10 text-sm text-white/45">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Searching…
+                {t('apps.searching')}
               </div>
             ) : view.kind === 'grid' ? (
               <>
                 {searchFallback && isSearching && tab === 'all' && (
                   <div className="glass-subtle px-4 py-2.5 text-xs text-white/55">
-                    Showing local results — search is temporarily unavailable.
+                    {t('apps.localResults')}
                   </div>
                 )}
                 {view.apps.length === 0 ? (
@@ -838,17 +846,17 @@ export function Apps(): React.JSX.Element {
                     icon={LayoutGrid}
                     title={
                       isSearching
-                        ? 'No apps match'
+                        ? t('apps.noMatch')
                         : tab === 'installed'
-                          ? 'No apps installed'
-                          : 'No apps available'
+                          ? t('apps.noneInstalled')
+                          : t('apps.noneAvailable')
                     }
                     description={
                       isSearching
-                        ? 'Try a different search.'
+                        ? t('apps.trySearch')
                         : tab === 'installed'
-                          ? 'Browse the Marketplace tab to find apps to install.'
-                          : 'Try again later.'
+                          ? t('apps.browseMarketplace')
+                          : t('apps.tryLater')
                     }
                   />
                 ) : (
@@ -873,8 +881,8 @@ export function Apps(): React.JSX.Element {
             ) : sections.length === 0 ? (
               <EmptyState
                 icon={LayoutGrid}
-                title="No apps available"
-                description="Try again later."
+                title={t('apps.noneAvailable')}
+                description={t('apps.tryLater')}
               />
             ) : (
               sections.map((section) => {
@@ -890,12 +898,12 @@ export function Apps(): React.JSX.Element {
                         >
                           {isExpanded ? (
                             <>
-                              Show less
+                              {t('apps.showLess')}
                               <ChevronUp className="h-3.5 w-3.5" />
                             </>
                           ) : (
                             <>
-                              See more
+                              {t('apps.seeMore')}
                               <ChevronDown className="h-3.5 w-3.5" />
                             </>
                           )}

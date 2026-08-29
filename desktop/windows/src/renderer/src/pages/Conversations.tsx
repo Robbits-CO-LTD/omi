@@ -63,6 +63,7 @@ import { PageHeader } from '../components/layout/PageHeader'
 import { EmptyState } from '../components/ui/EmptyState'
 import type { LocalConversation, ConversationFolder } from '../../../shared/types'
 import type { Conversation as CloudConversation } from '../lib/omiApi.generated'
+import { useI18n, type TranslationKey } from '../lib/i18n'
 
 // The "default view" = all folders + no date range. Only this view is written to
 // the shared conversationsCache (filtered fetches keep it clean) and it's the only
@@ -73,10 +74,10 @@ function isDefaultView(folder: FolderFilter, dateRange: DateRange): boolean {
 }
 
 // Chat/recording type filter — a client-side segmented control over the merged rows.
-const TYPE_TABS: { value: FilterKind; label: string; icon?: LucideIcon }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'chat', label: 'Chats', icon: MessageSquare },
-  { value: 'recording', label: 'Recordings', icon: Radio }
+const TYPE_TABS: { value: FilterKind; labelKey: TranslationKey; icon?: LucideIcon }[] = [
+  { value: 'all', labelKey: 'common.all' },
+  { value: 'chat', labelKey: 'conversations.chats', icon: MessageSquare },
+  { value: 'recording', labelKey: 'conversations.recordings', icon: Radio }
 ]
 
 function summarize(segments: { text: string }[] | undefined): string {
@@ -134,6 +135,7 @@ function ConversationSkeleton(): React.JSX.Element {
 }
 
 export function Conversations(): React.JSX.Element {
+  const { language, t } = useI18n()
   const { pathname } = useLocation()
   const panelIsActive = isConversationsPanelActive(pathname)
   const navigate = useNavigate()
@@ -617,17 +619,22 @@ export function Conversations(): React.JSX.Element {
     <div className="flex h-full flex-col">
       <PageHeader
         title="Conversations"
+        titleKey="pages.conversations"
         subtitle={
-          loading ? 'Loading…' : `${visible.length} conversation${visible.length === 1 ? '' : 's'}`
+          loading
+            ? t('common.loading')
+            : language === 'ja'
+              ? `${visible.length}件の会話`
+              : `${visible.length} conversation${visible.length === 1 ? '' : 's'}`
         }
         actions={
           <button
             onClick={() => navigate('/conversations/live')}
             className="btn-record flex items-center gap-2"
-            title="Start a live conversation"
+            title={t('conversations.startLive')}
           >
             <Mic className="h-4 w-4" />
-            New
+            {t('common.new')}
           </button>
         }
       />
@@ -639,18 +646,18 @@ export function Conversations(): React.JSX.Element {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search conversations…"
+            placeholder={t('conversations.search')}
             className="flex-1 border-0 bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-0"
           />
           {query && (
             <button onClick={() => setQuery('')} className="text-xs text-white/45 hover:text-white">
-              Clear
+              {t('common.clear')}
             </button>
           )}
         </div>
 
         <div className="surface-panel flex items-center gap-1 p-1">
-          {TYPE_TABS.map(({ value, label, icon: Icon }) => (
+          {TYPE_TABS.map(({ value, labelKey, icon: Icon }) => (
             <button
               key={value}
               onClick={() => setType(value)}
@@ -661,7 +668,7 @@ export function Conversations(): React.JSX.Element {
               }`}
             >
               {Icon && <Icon className="h-3.5 w-3.5" />}
-              {label}
+              {t(labelKey)}
             </button>
           ))}
         </div>
@@ -676,10 +683,12 @@ export function Conversations(): React.JSX.Element {
           className={`surface-panel flex items-center gap-2 px-4 py-2.5 text-sm transition-colors duration-200 ${
             selectMode ? 'text-white' : 'text-white/55 hover:text-white/80'
           }`}
-          title="Select conversations"
+          title={t('conversations.select')}
         >
           <CheckSquare className="h-4 w-4" />
-          <span className="hidden sm:inline">{selectMode ? 'Done' : 'Select'}</span>
+          <span className="hidden sm:inline">
+            {selectMode ? t('common.done') : t('common.select')}
+          </span>
         </button>
       </div>
 
@@ -716,7 +725,7 @@ export function Conversations(): React.JSX.Element {
                 onClick={() => void startBackfill()}
                 className="shrink-0 text-sm font-semibold text-white transition-colors hover:text-white/70"
               >
-                Sync past recordings
+                {t('conversations.syncPast')}
               </button>
             )}
           </div>
@@ -731,21 +740,19 @@ export function Conversations(): React.JSX.Element {
         {!loading && visible.length === 0 && (
           <EmptyState
             icon={GanttChartSquare}
-            title={anyFilter ? 'No matching conversations' : 'No conversations yet'}
+            title={anyFilter ? t('conversations.noMatch') : t('conversations.none')}
             description={
-              anyFilter
-                ? 'Try a different search or filter.'
-                : 'Start a recording to capture audio and screen context. Your conversations will appear here.'
+              anyFilter ? t('conversations.tryFilter') : t('conversations.emptyDescription')
             }
             action={
               anyFilter ? (
                 <button onClick={clearAllFilters} className="btn-ghost">
-                  Clear filters
+                  {t('conversations.clearFilters')}
                 </button>
               ) : (
                 <Link to="/home" className="btn-record">
                   <Mic className="h-4 w-4" />
-                  Start recording
+                  {t('conversations.startRecording')}
                 </Link>
               )
             }
@@ -804,14 +811,15 @@ export function Conversations(): React.JSX.Element {
       {pendingDelete && (
         <div className="glass-strong mx-6 mb-4 flex items-center justify-between rounded-2xl px-4 py-3 lg:mx-10">
           <span className="text-sm text-white/80">
-            {pendingDelete.ids.length} conversation{pendingDelete.ids.length !== 1 ? 's' : ''} will
-            be deleted in 5s
+            {language === 'ja'
+              ? `${pendingDelete.ids.length}件の会話を5秒後に削除します`
+              : `${pendingDelete.ids.length} conversation${pendingDelete.ids.length !== 1 ? 's' : ''} will be deleted in 5s`}
           </span>
           <button
             onClick={undoDelete}
             className="text-sm font-semibold text-white transition-colors hover:text-white/70"
           >
-            Undo
+            {t('common.undo')}
           </button>
         </div>
       )}

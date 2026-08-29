@@ -25,6 +25,7 @@ import { GoalInsightPanel } from '../components/goals/GoalInsightPanel'
 import type { GoalResponse as Goal } from '../lib/omiApi.generated'
 import { cache, writeCache, hydrateGoalsFromDisk } from '../lib/goalsCache'
 import { getCacheUid } from '../lib/persistentCache'
+import { useI18n } from '../lib/i18n'
 
 type GoalPatch = Partial<Pick<Goal, 'title' | 'target_value' | 'unit'>>
 
@@ -65,6 +66,7 @@ async function fetchAll(): Promise<Goal[]> {
 // route), so progress reaching the target is the only completion signal.
 
 export function Goals(): React.JSX.Element {
+  const { language, t } = useI18n()
   // Seed the cache from the per-uid cold-start snapshot before the initial state is
   // read, so the list paints last-known goals immediately on app restart instead of
   // a spinner. The revalidating fetch still runs (gated on cache.loaded) below.
@@ -485,8 +487,15 @@ export function Goals(): React.JSX.Element {
     <div className="flex h-full flex-col">
       <PageHeader
         title="Goals"
+        titleKey="pages.goals"
         titleSlot={<TasksGoalsToggle />}
-        subtitle={loading ? 'Loading…' : `${activeCount} active · ${doneCount} completed`}
+        subtitle={
+          loading
+            ? t('common.loading')
+            : language === 'ja'
+              ? `進行中 ${activeCount}件・完了 ${doneCount}件`
+              : `${activeCount} active · ${doneCount} completed`
+        }
         actions={
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 rounded-2xl border border-white/10 bg-black/20 p-1">
@@ -500,24 +509,32 @@ export function Goals(): React.JSX.Element {
                       : 'text-white/55 hover:bg-white/5 hover:text-white/80'
                   }`}
                 >
-                  {f}
+                  {f === 'active'
+                    ? t('common.active')
+                    : f === 'completed'
+                      ? t('common.completed')
+                      : t('common.all')}
                 </button>
               ))}
             </div>
-            <GenerateGoalsButton onClick={generateGoal} loading={generating} label="Suggest" />
+            <GenerateGoalsButton
+              onClick={generateGoal}
+              loading={generating}
+              label={t('goals.suggest')}
+            />
             <button
               onClick={() => setComposing((c) => !c)}
               className="btn-primary px-3 py-2"
-              title="Add a goal"
+              title={t('goals.add')}
             >
               <Plus className="h-4 w-4" />
-              New
+              {t('common.new')}
             </button>
             <button
               onClick={onRefresh}
               disabled={refreshing || loading}
               className="btn-ghost px-3 py-2 disabled:opacity-50"
-              title="Refresh"
+              title={t('common.refresh')}
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -534,7 +551,7 @@ export function Goals(): React.JSX.Element {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-white/40">
-                    Suggested goal
+                    {t('goals.suggested')}
                   </p>
                   <p className="mt-1 text-sm font-medium text-white/90">
                     {candidate.suggestion.title}
@@ -542,7 +559,7 @@ export function Goals(): React.JSX.Element {
                   {candidate.suggestion.target > 0 && (
                     <p className="mt-1 flex items-center gap-1.5 text-xs text-white/45">
                       <Target className="h-3.5 w-3.5" />
-                      Target {candidate.suggestion.target}
+                      {t('goals.target')} {candidate.suggestion.target}
                     </p>
                   )}
                   {candidate.suggestion.reasoning && (
@@ -561,24 +578,24 @@ export function Goals(): React.JSX.Element {
                       ) : (
                         <Plus className="h-4 w-4" />
                       )}
-                      Add this goal
+                      {t('goals.addThis')}
                     </button>
                     <button
                       onClick={generateGoal}
                       disabled={generating || accepting}
                       className="btn-ghost px-3 py-2 disabled:opacity-50"
-                      title="Suggest another"
+                      title={t('goals.suggestAnother')}
                     >
                       <RefreshCw className={`h-4 w-4 ${generating ? 'animate-spin' : ''}`} />
-                      Another
+                      {t('goals.another')}
                     </button>
                   </div>
                 </div>
                 <button
                   onClick={() => setCandidate(null)}
                   className="shrink-0 rounded-md p-1 text-white/30 transition-colors hover:bg-white/5 hover:text-white/70"
-                  title="Dismiss"
-                  aria-label="Dismiss suggestion"
+                  title={t('goals.dismiss')}
+                  aria-label={t('goals.dismissSuggestion')}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -604,7 +621,7 @@ export function Goals(): React.JSX.Element {
                     setDraftUnit('')
                   }
                 }}
-                placeholder="What do you want to achieve?"
+                placeholder={t('goals.placeholder')}
                 className="input-field"
               />
               <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -615,14 +632,14 @@ export function Goals(): React.JSX.Element {
                     min={0}
                     value={draftTarget}
                     onChange={(e) => setDraftTarget(e.target.value)}
-                    placeholder="Target (1)"
+                    placeholder={t('goals.targetPlaceholder')}
                     className="w-28 rounded-md border border-white/20 bg-black/30 px-2 py-1 text-xs text-white [color-scheme:dark] focus:border-white/50 focus:outline-none"
                   />
                 </label>
                 <input
                   value={draftUnit}
                   onChange={(e) => setDraftUnit(e.target.value)}
-                  placeholder="Unit (e.g. books)"
+                  placeholder={t('goals.unitPlaceholder')}
                   className="w-36 rounded-md border border-white/20 bg-black/30 px-2 py-1 text-xs text-white focus:border-white/50 focus:outline-none"
                 />
                 <button
@@ -635,14 +652,14 @@ export function Goals(): React.JSX.Element {
                   className="btn-ghost ml-auto px-3 py-2"
                   disabled={saving}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={saveNew}
                   disabled={saving || !draftTitle.trim()}
                   className="btn-primary px-4 py-2 disabled:opacity-40"
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add goal'}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : t('goals.addGoal')}
                 </button>
               </div>
             </div>
@@ -670,7 +687,7 @@ export function Goals(): React.JSX.Element {
             list is on screen and the next successful fetch updates it. */}
         {error && goals.length === 0 && (
           <div className="glass-subtle mb-5 px-4 py-3 text-sm text-white/60">
-            <p className="text-white/80">Couldn’t load your goals.</p>
+            <p className="text-white/80">{t('goals.loadFailed')}</p>
             <div className="mt-2 flex items-center gap-3">
               <button
                 onClick={() => {
@@ -680,7 +697,7 @@ export function Goals(): React.JSX.Element {
                 className="btn-ghost px-3 py-1.5 text-xs"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
-                Try again
+                {t('common.retry')}
               </button>
               <span className="text-xs text-white/35">{error}</span>
             </div>
@@ -690,7 +707,7 @@ export function Goals(): React.JSX.Element {
         {!loading && !error && goals.length === 0 && !composing && (
           <EmptyState
             icon={Target}
-            title="No goals yet"
+            title={t('goals.none')}
             description="Set a goal to track progress over time. Click New to create one."
           />
         )}
@@ -707,7 +724,7 @@ export function Goals(): React.JSX.Element {
             {activeGoals.length > 0 && (
               <section>
                 <h2 className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-white/40">
-                  Active
+                  {t('common.active')}
                   <span className="text-white/25">{activeGoals.length}</span>
                 </h2>
                 <ul className="space-y-2">{activeGoals.map(renderCard)}</ul>
@@ -716,7 +733,7 @@ export function Goals(): React.JSX.Element {
             {completedGoals.length > 0 && (
               <section>
                 <h2 className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-white/40">
-                  Completed
+                  {t('common.completed')}
                   <span className="text-white/25">{completedGoals.length}</span>
                 </h2>
                 <ul className="space-y-2">{completedGoals.map(renderCard)}</ul>

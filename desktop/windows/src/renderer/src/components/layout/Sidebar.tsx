@@ -8,6 +8,7 @@ import { Orb } from '../orb/Orb'
 import { navRoutes, isNavActive } from '../../routes/manifest'
 import type { User } from 'firebase/auth'
 import type { RewindSettings } from '../../../../shared/types'
+import { useI18n } from '../../lib/i18n'
 
 // The nav rail is driven off the shared route manifest (routes/manifest.ts) — the
 // same source MainViews renders from — so adding a page is one manifest entry, not
@@ -20,6 +21,7 @@ const COLLAPSE_KEY = 'omi.sidebar.collapsed'
 const HOVER = 'hover:bg-[var(--nav-sel)]'
 
 export function Sidebar(): React.JSX.Element {
+  const { t } = useI18n()
   const [user, setUser] = useState<User | null>(null)
   const [prefName, setPrefName] = useState<string | undefined>(getPreferences().displayName)
   const [collapsed, setCollapsed] = useState<boolean>(
@@ -47,7 +49,7 @@ export function Sidebar(): React.JSX.Element {
   const email = user?.email
   // Prefer the Google account's full name (stable "First Last"), then the
   // onboarding-entered name, then the email.
-  const displayName = user?.displayName?.trim() || prefName?.trim() || email || 'Account'
+  const displayName = user?.displayName?.trim() || prefName?.trim() || email || t('sidebar.account')
   const photoURL = user?.photoURL
   const initial =
     (user?.displayName?.trim() || prefName?.trim() || email)?.[0]?.toUpperCase() ?? '?'
@@ -101,7 +103,7 @@ export function Sidebar(): React.JSX.Element {
   ): React.JSX.Element => (
     <button
       onClick={onClick}
-      title={collapsed ? `${text}${on ? ' · on' : ''}` : undefined}
+      title={collapsed ? `${text}${on ? ` · ${t('common.on')}` : ''}` : undefined}
       aria-pressed={on}
       className={cn(
         'flex w-full items-center rounded-xl px-2.5 py-2 text-sm transition-colors duration-150',
@@ -179,8 +181,8 @@ export function Sidebar(): React.JSX.Element {
         </div>
         <button
           onClick={() => setCollapsed((c) => !c)}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+          aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
           className={cn(
             'shrink-0 rounded-lg p-1.5 text-white/40 transition-colors hover:text-white/80',
             HOVER
@@ -201,7 +203,7 @@ export function Sidebar(): React.JSX.Element {
           const nav = entry.nav
           if (!nav || !entry.path) return null
           const to = entry.path
-          const text = nav.label
+          const text = t(nav.labelKey)
           const Icon = nav.Icon
           return (
             <NavLink
@@ -234,8 +236,8 @@ export function Sidebar(): React.JSX.Element {
 
       {/* Quick capture toggles, sitting just above the account row. */}
       <div className="flex flex-col gap-1">
-        {toggleRow('Screen recording', Monitor, screenOn, toggleScreen)}
-        {toggleRow('Microphone', Mic, micOn, toggleMic)}
+        {toggleRow(t('sidebar.screenRecording'), Monitor, screenOn, toggleScreen)}
+        {toggleRow(t('sidebar.microphone'), Mic, micOn, toggleMic)}
       </div>
 
       <div className="my-2 h-px w-full bg-white/[0.07]" />

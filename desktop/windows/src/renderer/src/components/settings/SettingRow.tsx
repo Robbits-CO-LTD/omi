@@ -1,6 +1,8 @@
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useSearchableRow } from './searchContext'
+import { useI18n } from '../../lib/i18n'
+import { localizeSettingsText } from '../../lib/settingsText'
 
 export type DotTone = 'on' | 'off' | 'warn'
 
@@ -32,7 +34,12 @@ export function SettingRow(props: {
   children?: React.ReactNode
 }): React.JSX.Element | null {
   const { icon: Icon, title, subtitle, keywords, dot, control, note, children } = props
-  const visible = useSearchableRow(`${title} ${subtitle ?? ''} ${keywords ?? ''}`)
+  const { language } = useI18n()
+  const displayTitle = localizeSettingsText(language, title)
+  const displaySubtitle = subtitle ? localizeSettingsText(language, subtitle) : undefined
+  const visible = useSearchableRow(
+    `${title} ${subtitle ?? ''} ${displayTitle} ${displaySubtitle ?? ''} ${keywords ?? ''}`
+  )
   if (!visible) return null
 
   return (
@@ -40,11 +47,15 @@ export function SettingRow(props: {
       <div className="flex items-center gap-4">
         {/* The dot gutter is ALWAYS reserved so rows with and without a status
             dot share the same icon/text columns (alignment across every tab). */}
-        <span className={cn('h-2 w-2 shrink-0 rounded-full', dot ? DOT_CLASS[dot] : 'bg-transparent')} />
+        <span
+          className={cn('h-2 w-2 shrink-0 rounded-full', dot ? DOT_CLASS[dot] : 'bg-transparent')}
+        />
         {Icon && <Icon className="h-5 w-5 shrink-0 text-white/55" strokeWidth={1.75} />}
         <div className="min-w-0 flex-1">
-          <div className="text-[15px] font-semibold text-text-primary">{title}</div>
-          {subtitle && <div className="mt-0.5 text-sm text-text-tertiary">{subtitle}</div>}
+          <div className="text-[15px] font-semibold text-text-primary">{displayTitle}</div>
+          {displaySubtitle && (
+            <div className="mt-0.5 text-sm text-text-tertiary">{displaySubtitle}</div>
+          )}
           {note && <div className="mt-1.5">{note}</div>}
         </div>
         {control && <div className="shrink-0">{control}</div>}

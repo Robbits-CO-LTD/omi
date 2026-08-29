@@ -3,6 +3,7 @@ import { Activity, EyeOff, Monitor, ShieldCheck } from 'lucide-react'
 import { SettingRow } from '../SettingRow'
 import { Toggle } from '../Toggle'
 import type { UsageSettings } from '../../../../../shared/types'
+import { useI18n } from '../../../lib/i18n'
 
 const RETENTION_OPTIONS: ReadonlyArray<{ days: number; label: string }> = [
   { days: 30, label: '30 days' },
@@ -13,6 +14,7 @@ const RETENTION_OPTIONS: ReadonlyArray<{ days: number; label: string }> = [
 ]
 
 export function PrivacyTab(): React.JSX.Element {
+  const { language } = useI18n()
   const [usage, setUsage] = useState<UsageSettings | null>(null)
   useEffect(() => {
     window.omi
@@ -73,7 +75,9 @@ export function PrivacyTab(): React.JSX.Element {
       >
         {usage?.enabled && (
           <label className="flex items-center gap-2 text-sm text-text-secondary">
-            <span>Forget apps not used in</span>
+            <span>
+              {language === 'ja' ? '未使用アプリを忘れる期間' : 'Forget apps not used in'}
+            </span>
             <select
               value={usage.retentionDays}
               onChange={(e) => void saveUsage({ ...usage, retentionDays: Number(e.target.value) })}
@@ -81,7 +85,7 @@ export function PrivacyTab(): React.JSX.Element {
             >
               {RETENTION_OPTIONS.map((o) => (
                 <option key={o.days} value={o.days} className="bg-neutral-900">
-                  {o.label}
+                  {language === 'ja' ? `${o.days}日${o.days === 45 ? '（推奨）' : ''}` : o.label}
                 </option>
               ))}
             </select>
